@@ -1,0 +1,674 @@
+---
+title: "How to Guide for Making Printable Geographic Locations for a Fire Lookout"
+subtitle: "Rought Draft 3"
+author: "Travis Newton"
+date: "`r format(Sys.Date(), '%d %B %Y')`"
+format: 
+  pdf: 
+    toc: TRUE
+    toc-depth: 3
+    number-sections: TRUE
+    fig_caption: yes
+    colorlinks: TRUE
+    documentclass: report
+    classoption: landscape
+    papersize: letter
+    geometry:
+        - margin = .5in
+    code-overflow: wrap
+    mainfont: Avenir LT Pro
+    monofont: Source Code Pro
+editor: visual
+editor_options:
+  chunk_output_type: inline
+execute:
+  warning: false
+  echo: true
+  include: true
+---
+
+# Building Reference Location Tables
+
+## Introduction
+
+### About
+
+Utilizing code in R can improve redundant operations in daily tasks as an employee in public service or a corporation. This tutorial series will focus on the United States State Forest Service (USFS) at the fire prevention level, specifically, a Fire Lookout Tower.
+
+While the job of a lookout may seem straightforward, it is of utmost importance. A lookout's primary task is maintaining a constant 360-degree vigil, scanning for fire signs in known areas such as campsites, farming, and logging operations. Lighting is the most frequent cause of fires nowadays due to a Laissez-faire policy on forest management plans, reduced timber sales, and climate change.
+
+In this first chapter, we explore making location cards for a Fire Lookout to use with his Osborne Fire Finder to quickly ID and triangulate smoke in the forgone distance. Depending on the region, lookouts come in many styles, and this covers a D-6 Cupola called the Dutchman Peak Lookout (circa.1927).
+
+### Task
+
+The Dutchman Peak was fortunate to have past lookouts who wrote hand-drawn calligraphy cards displaying the same information the tutorial builds. Over time, the original cards have faded, weathered, and become unreadable. The tutorial will curate that data and replicate the original calligraphy as closely as possible.
+
+Data and visual exploration were used to develop the improvements below. The `level` row will guide the user in placement after the cards have been laminated and individually cut (see Table 1.1).
+
+### Install packages and load data tables
+
+```{r}
+#| label: packages
+
+# When installing packages for first time you will need to execute the options unlock on sharepoint computers
+options("install.lock"=FALSE)
+
+#Packages to be loaded
+packages <- c("janitor", "tidyverse", "here", "readODS", "here", "showtext", "gdtools", "sysfonts", "png", "flextable")
+
+#Check to see if packages exist, and load them. If they do not exist, they will be installed
+package.check <- lapply(
+  packages, FUN = function(p) {
+    if (!require(p, character.only = TRUE)) {
+      install.packages(p,dependencies = TRUE)
+      library(p, character.only = TRUE)
+    }
+  })
+```
+
+1.  Tibbles make better tables than data frames and are part of the tidyverse package. `clean_names` turns any column header into lowercase when reading in files. Start with a table of data with locations, elevation, degrees, distance, alternate names (used in future references), and a wall location.
+
+```{r}
+#| label: read-maps
+
+#Read data into a tibble vs dataframe
+maps <- as_tibble(read_ods(here("locationNames.ods"), col_names = TRUE)) %>% clean_names()
+
+#arrange your point locations by azimuth
+maps <- maps %>% 
+  arrange(deg_min)
+head(maps, 3)
+```
+
+```{r}
+#| tbl-cap: "Card Design"
+#| label: card-design
+#| tbl-cap-location: bottom
+
+c.org <- c("Geographic Name", "Degrees Minutes : Miles", "Elevation", NA, NA)
+n.new <- c("Geographic Name", "Dir :: Degrees Minutes", "Miles", "Elevation",     "Level")
+
+card.design <- data.frame("Original_Card" = c.org, "New_Card" = n.new)
+
+ft <- flextable(card.design) %>% 
+  theme_vanilla() %>% 
+  autofit()
+ft
+
+```
+
+## Cleaning Data
+
+1.  Create new columns with `mutate` from existing data in the table. A new column, *wall*, helps place it inside the cupola. The `between` function creates a range for the cardinal direction.
+
+::: {.callout-tip title="Logical direction statement"}
+The north direction receives two `between` functions because it operates right and left at 0 degrees. The computer would not understand 320-50. Logically, you must state 320-360, then 0-50 degrees.
+:::
+
+```{r}
+#| label: map-dir-main
+
+#Use the between method from dyplr as a shortcut with if_else to create a new column
+maps <- maps %>% 
+  mutate(wall_hang = if_else(between(maps$deg_min, 320, 360) |
+                               between(maps$deg_min, 0, 50), "North", 
+                             if_else(between(maps$deg_min, 50.1, 135), "East",
+                                     if_else(between(maps$deg_min, 135.1, 225),"South", 
+                                             if_else(between(maps$deg_min, 225.1, 319.9), "West", NA)))))
+head(maps, 3)
+```
+
+2.  The same method is then applied to get the cardinal direction. The new *dir* column will combine into a label later.
+
+```{r}
+#| label: map-dir-cardinal
+
+#Create cardinal direction
+maps <- maps %>% 
+  mutate(dir = if_else(between(maps$deg_min, 330, 360) | between(maps$deg_min, 0, 30), "N",
+                       if_else(between(maps$deg_min, 30.1, 60), "NE",
+                                if_else(between(maps$deg_min, 60.1, 120), "E",
+                                        if_else(between(maps$deg_min, 120.1, 150), "E", if_else(between(maps$deg_min, 150.1, 210), "S", if_else(between(maps$deg_min, 210.1, 240), "SW", if_else(between(maps$deg_min, 240.1, 300), "W",if_else(between(maps$deg_min, 300.1, 329.9), "NW", NA)))))))))
+head(maps, 3)
+```
+
+3.  Instead of using the new `between` method, the below baseR would use greater and equal signs. The goal is to set four levels of tables, which can be used to designate different effects such as size, color, or font style (bold,italic).
+
+::: {.callout-note title="Logical direction statement"}
+The second part, using `mutate_if,` acts as an old `row_wise` technique that looks for character strings and provides them with the correct casing.
+:::
+
+```{r}
+#| label: map-level
+
+# mutate across rows to change data
+maps <- maps %>% 
+  mutate(level = if_else(miles <= 10, 1,
+                         if_else(miles > 10 & miles <=20, 2,
+                                 if_else(miles > 20 & miles <=30, 3, 4 )))) %>% 
+  mutate_if(is.character,str_to_title) #what to predict, then function
+head(maps, 3)
+```
+
+4.  For calligraphy purposes, the degrees and minutes must be split into two separate columns. A warning will appear for missing values with NA, but will be corrected in the next block.
+
+```{r}
+#| label: map-deg-sep
+
+#separate the degrees and minutes
+maps <- maps %>% 
+  separate(col = deg_min,
+           remove = FALSE,
+           into = c("degree", "minutes")) #these columns auto set as characters
+head(maps,3)
+
+```
+
+5.  Using a Unix code abbreviation, the degree symbol can be added to the labels.
+
+```{r}
+#| label: map-deg-indiv
+
+#count the number of characters and add correct numbers and abbreviation of deg or min
+maps <- maps %>% 
+  mutate(minutes = if_else(is.na(minutes),
+                           paste0("00", "'"),
+                   if_else(str_length(minutes) == 1,
+                           paste0(minutes, "0", "'"),
+                           paste0(minutes,"'"))),
+         degree = if_else(str_length(degree) == 1,
+                          paste0(0, degree, "\u00B0"),
+                          paste0(degree,"\u00B0"))) #symbol to create a degree `\u00B0`
+head(maps, 3)
+```
+
+6.  New columns depicting the label information are created.
+
+```{r}
+#| label: map-labels
+
+#create a text label, this time using the paste instead of paste0
+
+maps <- maps %>% 
+  mutate(dir = str_to_upper(dir),  # fix the title case
+         label_1 = paste(dir, degree, minutes),
+         label_2 = paste(miles, "miles"),
+         label_3 = paste(elev,"ft"),
+         label_4 = paste(wall_hang, level))  #for easy reference when hanging
+head(maps, 3)
+```
+
+::: {.callout-tip title="Logical direction statement"}
+As data manipulation continues, columns or rows can be lost. Creating a total card summary ensures accountability of all locations at the end of the process.
+:::
+
+```{r}
+#| label: count-levels
+
+#create a reference to insure no location is left out when subsetting levels
+lvl.count <- maps %>% 
+  group_by(level) %>% 
+  summarise(total = n())
+lvl.count
+```
+
+### Creating Functions
+
+1.  The next step is creating a function to subset columns and `transpose` them like a `pivot_wider`. Using the transpose gives a mirror reflection of all table data.
+
+```{r}
+#| label: func-levels
+
+func.level <- function(x,y) {
+  f.level = dplyr::filter(.data = x, level == y)
+  reduce = dplyr::select(.data = f.level, name, label_1, label_2, label_3, label_4)
+  long.set = as_tibble(t(reduce))
+  col.label = c(seq_along(long.set))
+  row = set_names(long.set, paste0("col_",col.label))
+  row1 = add_row(.data = row, .before = 1)
+}
+  
+```
+
+2.  Call the functions by inputting the data source and level. The data is stored in a new frame.
+
+```{r}
+#| label: call-func-levels
+
+level1 <- func.level(maps,1)
+level2 <- func.level(maps,2)
+level3 <- func.level(maps,3)
+level4 <- func.level(maps,4)
+
+```
+
+3.  Unlike the last summary check, there are now four tables to summarize. Using the `map` function against a `list` acts as a functional loop.
+
+```{r}
+#| label: check-level-totals
+
+#check first function results
+lvl.list <- list(level1, level2, level3, level4)
+match.level <- map_int(.x = lvl.list, .f = length) 
+lvl.count2 <- lvl.count %>% 
+  mutate(fn1_count = match.level,
+         missing_fn1 = total - fn1_count)
+lvl.count2
+```
+
+4.  In the second function, creative if else statments allow tables of varying lengths and columns falling on even or odd counts. Thus this one function can be run against all four of the current levels.
+
+```{r}
+#| label: func-binding
+
+func.binding <- function(setL,inputD) {
+  
+  #......Set sequence pattern
+  print("Initialize sequence pattern")
+  start = seq(from = 1, to = length(inputD), by = setL)
+  end = seq(from = setL, to = length(inputD), by = setL)
+  print(start)
+  print(end)
+  
+  #......Fix sequence pattern
+  if (length(start) > length(end)) {
+    print("......Fixing divisable sequence match")
+    end.remainder = c(end, length(inputD))
+    #Review range
+    print("Adjusted Range Sequence")
+    print(start)
+    print(end.remainder)
+  }
+  else {
+    print("......Columns are same length and divisable")
+    end.remainder = end
+  }
+
+  #......Set loop conditions
+  counter = 1
+  set.col.names = c(paste0("col_", seq_along(1:setL)))
+  tbl.bind <- tibble(setNames(data.frame(matrix(ncol = setL, nrow = 0)), set.col.names))
+  
+  #......Build binding table
+  print("......Counting Loop")
+  for (i in inputD) {
+    if (counter < length(start)) {
+      print(paste("Bind row = ", counter))
+      index.range = select(inputD, start[counter]:end.remainder[counter])
+      index.range = (set_names(index.range, set.col.names))
+      tbl.bind = rbind(tbl.bind, index.range)
+      counter = counter + 1
+    }
+    else if (counter == length(start)) {
+      print(paste("Bind Final = ", counter))
+      index.range = select(inputD,start[counter]:end.remainder[counter])
+      index.range = (set_names(index.range, set.col.names[1:as.numeric(length(index.range))]))
+      tbl.bind = plyr::rbind.fill(tbl.bind,index.range)
+      counter = counter + 1
+    }
+  }
+  #......Loop ends, add empty row
+  print("Dummy row added")
+  tbl.bind = add_row(.data = tbl.bind,.after = nrow(tbl.bind) + 1)
+}
+  
+```
+
+5.  The two function inputs are the column numbers intended for output and the input table. While not necessary, adding print codes in functions can help find errors. In a production environment, print commands are typically removed as they are for testers. After beta testing, error codes (*try and exempt*) replace print commands.
+
+::: {.callout-tip title="Function inputs"}
+The great thing about functions is that they can be adjusted repeatedly until the desired input is found. Test out the data using different column sizes.
+:::
+
+```{r}
+#| label: call-func-binding-1
+
+#displayed with outputs
+tbl.level1 <- func.binding(5, level1)
+```
+
+```{r}
+#| label: call-func-binding-2-4
+#| include: FALSE
+
+#no output display
+tbl.level2 <- func.binding(5, level2)
+tbl.level3 <- func.binding(5, level3)
+tbl.level4 <- func.binding(5, level4)
+```
+
+## Creating Flex tables
+
+### Fonts with Flextable
+
+1.  The required syntax between outputs is widely different between HTML, PDF, Word, Powerpoint, revealJS, and so forth. Google Fonts is a go-to for developers in the HTML space but will not translate through a \LaTeX render. Before Quarto, most report writers created tables using `kableextra`, with Rmarkdown and alot of \LaTeX syntax, which was finicky. `Flextable` is a new package that does the same thing and works well with Quarto.
+
+2.  The `extrafont` or `sysfonts` package are methods to pull existing fonts from the windows library. Google fonts can be imported with the `gdtools` or `showtext` package. `gdtools` is suitable for R shiny or markdown applications, in which Quarto is a type of markdown. `Showtext` is used more in graphs, and the `extrafont` is more for pdf text blocks.
+
+::: {.callout-note title="Google Fonts"}
+Google Fonts can be displayed while viewing them in Rstudio IDE. But once rendered, the code breaks unless you hide the code from the render engine. A workaround is to write the table, hide the code, save the table as an image, import, and display.
+:::
+
+### Creating a Windows font table
+
+1.  The user would need to review all the windows fonts, curate a list of names and build a table in the similar manner as previous example. This has already been done, but this time as `.txt` file for practice.
+
+```{r}
+#| label: winfont-read
+
+#read in a .txt file with a list of favorite windows formats
+win.tbl <- read_delim(here("windowsFonts.txt"), delim = ",", col_names = TRUE, trim_ws = TRUE) %>% clean_names()
+head(win.tbl,3)
+```
+
+2.  Not all data is perfect when received. The example data comes in a mixture of letter casing. The cleaning will replace the lowercase with the title case and then uppercase the specific letters to match the Windows database.
+
+```{r}
+#| label: winfont-str-fix
+
+win.tbl <- win.tbl %>% 
+  mutate(font = str_to_title(font)) %>%  # Title case
+  mutate(font = str_replace(font, "Itc", str_to_upper)) %>% # Replace title case with uppercase
+  mutate(font = str_replace(font, "Ms", str_to_upper)) %>% 
+  mutate(font = str_replace(font, "Clm", str_to_upper)) %>% 
+  mutate(font = str_replace(font, "Ui", str_to_upper)) %>% 
+  mutate(font = str_replace(font, "Gd", str_to_upper)) %>% 
+    mutate(font = str_replace(font, "Lt", str_to_upper)) %>% 
+  arrange(type, usage, font) %>% 
+  mutate(label = "Acorn Woman L.O. 282\u00B0 21.5 mi. 7055' elev") %>% 
+  mutate(item = 1:nrow(win.tbl), .before=font)
+
+```
+
+3.  Index each column containing the font name, then set the column containing the string to change. Misspelled font names will not return the correct font, and the PDF render engine will fail.
+
+```{r}
+#| label: tbl-winfont-flex
+
+#create a flextable
+pretty.font <- flextable(win.tbl) %>% 
+  border_outer(part = "all") %>% #add some border
+  border_inner(part = "all") %>% 
+  bold(part = "header") %>% 
+  autofit() 
+
+#Set a different font for each associated column
+pretty.font1 <- pretty.font %>% 
+  font(fontname = as.character(win.tbl[1,2]), i = 1, j = 5) %>%
+  font(fontname = as.character(win.tbl[2,2]), i = 2, j = 5) %>%
+  font(fontname = as.character(win.tbl[3,2]), i = 3, j = 5) %>%
+  font(fontname = as.character(win.tbl[4,2]), i = 4, j = 5) %>%
+  font(fontname = as.character(win.tbl[5,2]), i = 5, j = 5) %>%
+  font(fontname = as.character(win.tbl[6,2]), i = 6, j = 5) %>%
+  font(fontname = as.character(win.tbl[7,2]), i = 7, j = 5) %>%
+  font(fontname = as.character(win.tbl[8,2]), i = 8, j = 5) %>%
+  font(fontname = as.character(win.tbl[9,2]), i = 9, j = 5) %>%
+  font(fontname = as.character(win.tbl[10,2]), i = 10, j = 5) %>%
+  font(fontname = as.character(win.tbl[11,2]), i = 11, j = 5) %>%
+  font(fontname = as.character(win.tbl[12,2]), i = 12, j = 5) %>%
+  font(fontname = as.character(win.tbl[13,2]), i = 13, j = 5) %>%
+  font(fontname = as.character(win.tbl[14,2]), i = 14, j = 5) %>%
+  font(fontname = as.character(win.tbl[15,2]), i = 15, j = 5) %>%
+  font(fontname = as.character(win.tbl[16,2]), i = 16, j = 5) %>% 
+  font(fontname = as.character(win.tbl[17,2]), i = 17, j = 5) %>% 
+  font(fontname = as.character(win.tbl[18,2]), i = 18, j = 5) %>% 
+  font(fontname = as.character(win.tbl[19,2]), i = 19, j = 5) %>% 
+  font(fontname = as.character(win.tbl[20,2]), i = 20, j = 5) %>% 
+  font(fontname = as.character(win.tbl[21,2]), i = 21, j = 5) %>% 
+  font(fontname = as.character(win.tbl[22,2]), i = 22, j = 5) %>% 
+  font(fontname = as.character(win.tbl[23,2]), i = 23, j = 5)
+
+pretty.font2 <- theme_zebra(pretty.font1)
+pretty.font2
+```
+
+\newpage
+
+### Combining Font Type, Color and Size
+
+1.  Create color combos using the USFS Agency color list.
+
+::: {.callout-warning title="Color Palette"}
+Using light colors is too hard to read in cupolas. Use dark colors such as forest green or black. Using a greyscale to save on print costs when printing in large quantities. For web design, ensure the colors are 508 compliant.
+:::
+
+```{r}
+#| label: color-codes
+
+black <- "#000000"
+brown <- "#6a5147"
+green.forest <- "#005838"
+green.mint <- "#62C1AC"
+grey <- "#A9B1B6"
+yellow <- "#ffd51d"
+white <- "#FFFFFF"
+```
+
+2.  Set the defaults for `flexible`, which reduces the length of the flexible code chunk.
+
+```{r}
+#| label: flex-defaults
+
+init_flextable_defaults()
+
+fontname <- as.character(win.tbl[7,2])
+box.border <- fp_border_default(color = grey, width = 2, style = "solid")
+```
+
+3.  The card size chosen (font size) will dictate how many rows can be displayed on one page. Automation can be accomplished with `lappy`, but lacks customization. Therefore, the user must subset the data and run as many tables as required to fit on a page.
+
+```{r}
+#| label: flex-subset
+
+#subset rows using slice
+tbl.level1a <- tbl.level1 %>% slice(1:25)
+tbl.level1b <- tbl.level1 %>% slice(25:37)
+
+tbl.level2a <- tbl.level2 %>% slice(1:25)
+tbl.level2b <- tbl.level2 %>% slice(25:37)
+
+#no subset for tbl.level3
+
+tbl.level4a <- tbl.level4 %>% slice(1:25)
+tbl.level4b <- tbl.level4 %>% slice(25:43)
+
+```
+
+4.  Create all the required flex tables. Flex table requires manually inputting the row numbers that must be changed for font sizes and styles.
+
+```{r}
+#| label: flex-1
+
+ft <- flextable(tbl.level1a) %>% 
+  delete_part("header") %>%
+  border_inner_v(border = box.border, part = "all") %>%
+  border_outer(border = box.border) %>%
+  bold(i =  c(2, 8, 14, 20)) %>%
+  fontsize(i =  c(2, 8, 14, 20), size = 15) %>%
+  fontsize(i = c(3,4,5,9,10,11,15,16,17,21,22,23), size = 10) %>%
+  fontsize(i = c(6, 12, 18, 24), size = 5) %>%
+  color(color = brown) %>%
+  align_text_col(align = "center") %>% 
+  font(fontname = fontname, part = "all") %>% 
+  autofit()
+flex1a <- ft
+
+ft <- flextable(tbl.level1b) %>% 
+  delete_part("header") %>%
+  border_inner_v(border = box.border, part = "all") %>%
+  border_outer(border = box.border) %>%
+  bold(i =  c(2,8)) %>%
+  fontsize(i =  c(2,8), size = 15) %>%
+  fontsize(i = c(3,4,5,9,10,11), size = 10) %>%
+  fontsize(i = c(6,12), size = 5) %>%
+  color(color = brown) %>%
+  align_text_col(align = "center") %>% 
+  font(fontname = fontname, part = "all") %>% 
+  autofit()
+flex1b <- ft
+
+```
+
+```{r}
+#| label: flex-2
+
+ft <- flextable(tbl.level2a) %>% 
+  delete_part("header") %>%
+  border_inner_v(border = box.border, part = "all") %>%
+  border_outer(border = box.border) %>%
+  bold(i =  c(2, 8, 14, 20)) %>%
+  fontsize(i =  c(2, 8, 14, 20), size = 15) %>%
+  fontsize(i = c(3,4,5,9,10,11,15,16,17,21,22,23), size = 10) %>%
+  fontsize(i = c(6, 12, 18, 24), size = 5) %>%
+  color(color = green.forest) %>%
+  align_text_col(align = "center") %>% 
+  font(fontname = fontname, part = "all") %>% 
+  autofit()
+flex2a <- ft
+
+ft <- flextable(tbl.level2b) %>% 
+  delete_part("header") %>%
+  border_inner_v(border = box.border, part = "all") %>%
+  border_outer(border = box.border) %>%
+  bold(i =  c(2,8)) %>%
+  fontsize(i =  c(2,8), size = 15) %>%
+  fontsize(i = c(3,4,5,9,10,11), size = 10) %>%
+  fontsize(i = c(6,12), size = 5) %>%
+  color(color = green.forest) %>%
+  align_text_col(align = "center") %>% 
+  font(fontname = fontname, part = "all") %>% 
+  autofit()
+flex2b <- ft
+
+```
+
+```{r}
+#| label: flex-3
+
+ft <- flextable(tbl.level3) %>% 
+  delete_part("header") %>%
+  border_inner_v(border = box.border, part = "all") %>%
+  border_outer(border = box.border) %>%
+  bold(i =  c(2, 8, 14, 20)) %>%
+  fontsize(i =  c(2, 8, 14, 20), size = 14) %>%
+  fontsize(i = c(3,4,5,9,10,11,15,16,17,21,22,23), size = 9) %>%
+  fontsize(i = c(6, 12, 18, 24), size = 5) %>%
+  color(color = brown) %>%
+  align_text_col(align = "center") %>% 
+  font(fontname = fontname, part = "all") %>% 
+  autofit()
+flex3 <- ft
+
+```
+
+```{r}
+#| label: flex-4
+
+ft <- flextable(tbl.level4a) %>% 
+  delete_part("header") %>%
+  border_inner_v(border = box.border, part = "all") %>%
+  border_outer(border = box.border) %>%
+  bold(i =  c(2, 8, 14, 20)) %>%
+  fontsize(i =  c(2, 8, 14, 20), size = 14) %>%
+  fontsize(i = c(3,4,5,9,10,11,15,16,17,21,22,23), size = 9) %>%
+  fontsize(i = c(6, 12, 18, 24), size = 5) %>%
+  color(color = green.forest) %>%
+  align_text_col(align = "center") %>% 
+  font(fontname = fontname, part = "all") %>% 
+  autofit()
+flex4a <- ft
+
+ft <- flextable(tbl.level4b) %>% 
+  delete_part("header") %>%
+  border_inner_v(border = box.border, part = "all") %>%
+  border_outer(border = box.border) %>%
+  bold(i =  c(2,8,14)) %>%
+  fontsize(i =  c(2,8,14), size = 14) %>%
+  fontsize(i = c(3,4,5,9,10,11,15,16,17), size = 9) %>%
+  fontsize(i = c(6,12,18), size = 5) %>%
+  color(color = green.forest) %>%
+  align_text_col(align = "center") %>% 
+  font(fontname = fontname, part = "all") %>% 
+  autofit()
+flex4b <- ft
+
+```
+
+\newpage
+
+```{r}
+#| tbl-cap: "Level 1a Print"
+#| label: tbl-flex1a-print
+#| tbl-cap-location: bottom
+
+flex1a
+```
+
+\newpage
+
+```{r}
+#| tbl-cap: "Level 2a Print"
+#| label: tbl-flex2a-print
+#| tbl-cap-location: bottom
+
+flex2a
+```
+
+\newpage
+
+```{r}
+#| tbl-cap: "Level 1b Print"
+#| label: tbl-flex1b-print
+#| tbl-cap-location: bottom
+
+flex1b
+```
+
+\newpage
+
+```{r}
+#| tbl-cap: "Level 2b Print"
+#| label: tbl-flex2b-print
+#| tbl-cap-location: bottom
+
+flex2b
+```
+
+\newpage
+
+```{r}
+#| tbl-cap: "Level 3 Print"
+#| label: tbl-flex3-print
+#| tbl-cap-location: bottom
+
+flex3
+```
+
+\newpage
+
+```{r}
+#| tbl-cap: "Level 4a Print"
+#| label: tbl-flex4a-print
+#| tbl-cap-location: bottom
+
+flex4a
+```
+
+\newpage
+
+```{r}
+#| tbl-cap: "Level 4b Print"
+#| label: tbl-flex4b-print
+#| tbl-cap-location: bottom
+
+flex4b
+```
+
+## Saving Data
+
+1.  Lots of great information has undergone the **data wrangling** process. The data should be saved for future uses. The data can be exported as .odt, .txt, .csv, .excel, and other formats. The easiest way to recall or import the data into other programs is the csv file.
+
+```{r}
+write_csv(x = maps, file = here("data_output/maps.csv"),col_names = TRUE)
+write_csv(x = win.tbl, file = here("data_output/winfonts.csv"),col_names = TRUE)
+```

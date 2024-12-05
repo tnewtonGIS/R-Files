@@ -1,0 +1,700 @@
+---
+title: "After Action Review"
+subtitle: "Dutchman Peak Fire Lookout Tower"
+author: 
+  name: "Travis Newton"
+  url: "mailto:email@email.edu"
+date: last-modified
+date-format: long
+abstract-title: "Dutchman"
+editor: visual
+editor_options:
+chunk_output_type: inline
+execute:
+  warning: false
+  echo: true
+  include: true
+bibliography: references.bib
+appendix-style: default
+format:
+  pdf:
+    other-links:
+    - text: NASA Open Data
+      href: https://data.nasa.gov/
+    documentclass: report
+    papersize: letter
+    mainfont: Avenir LT Pro
+    monofont: Source Code Pro
+    toc: TRUE
+    toc-depth: 3
+    toc-location: left
+    tbl-colwidths: [45, 45]
+    number-sections: FALSE
+    fig_caption: yes
+    cap-location: bottom
+    colorlinks: TRUE
+    author: "Travis Newton"
+    author-meta: "Dutchman Peak L.O., Star Ranger Station, Ruch Oregon"
+    geometry:
+      - margin = 1in
+    code-overflow: wrap
+    include-in-header: 
+      text: |
+          \usepackage[cc]{titlepic}
+          \usepackage{graphicx}
+          \titlepic{\includegraphics[width=0.3\textwidth]{usfs.png}}
+          \pagenumbering{gobble}
+          \pagestyle{plain}
+          \pagenumbering{arabic}
+          \usepackage{scrlayer-scrpage}
+          \rohead{\small{Dutchman Peak}}
+          \ifoot{\scriptsize{USFS District 6: Rouge-Siskiyou National Forest; Fire Tower Lookout AAR: Fireseason 2024}}
+          \rofoot*{\pagemark}{\color{gray}}
+          \usepackage{indentfirst}
+          \setlength{\parindent}{2em}
+          \usepackage{marginnote}
+---
+
+```{r}
+#| label: packages
+#| include: false
+
+# When installing packages for first time you will need to execute the options unlock on sharepoint computers
+options("install.lock"=FALSE)
+
+#Packages to be loaded
+packages <- c("janitor", "tidyverse", "here", "readODS", "here", "showtext", "gdtools", "sysfonts", "png", "flextable", "hms", "cowplot", "ggimage", "leaflet", "tigris", "ggmap", "ggthemes")
+
+#Check to see if packages exist, and load them. If they do not exist, they will be installed
+package.check <- lapply(
+  packages, FUN = function(p) {
+    if (!require(p, character.only = TRUE)) {
+      install.packages(p,dependencies = TRUE)
+      library(p, character.only = TRUE)
+    }
+  })
+
+```
+
+## Abstract
+
+During the 2024 fire season, the Rouge-Siskiyou National Forest employed a fire lookout at Dutchman Peak after going unstaffed for two decades. This report will discuss observations and recommendations after three months of living at the lookout tower. The author of this document leans on previous outdoor experience as a retired Army Veteran, NPS Search and Rescue Ranger and a technical expertise in Geospatial Information Sciences.
+
+# Overview
+
+## Summary
+
+Throughout this document, the readers will understand the history of Dutchman Peak, the mission of the Dutchman lookout, operational and logistics requirements, future upgrades, and the infusion of modern technology into operations. The AAR, a practical tool, also helps future lookouts understand the conditions at Dutchman and prepare logistically for their tour of duty.
+
+## Introduction
+
+Dutchman Peak sits at 7,417' elevation in the southern portion of the Rouge River-Siskiyou Mountain National Forest, T40S R2E S36 SW1/4, and west of the Ashland Watershed [@atwood_usfs_1999]. Originally known as the Lost Dutchman by old locals, USFS recommended acquisition in 1922 to replace the 1917 Yellow Jacket Mt Lookout [@port_dutchman_1938]. Dutchman Lookout is a D-6 cupola, short for District 6, which covers the Pacific Northwest Region. Dutchman was delivered by 16 pack mules and built on site in 1927. A D-6 measures 12'x12' at the base, with a 6'x6' cupola. From 1935-1936 the Civilian Conservation Corps (CCC) constructed the Ashland-Applegate Loop road, followed by a connector road to the Dutchman. In 1937 the CCC built an adjacent garage, which was converted into a two-room cabin for the Aerial Warfare Service in 1942 [@department_of_interior_national_2000]. The adjacent facility was used to house lookout staff until taken over by wood rats; the home is highly contaminated with lead, asbestos, and hantavirus. The last major update to the D-6 Lookout was in 1999; the house has been altered various times from 1942 to the 1960s. Other lookouts in the region are L-14s, which stands for Live in quarters 14'x14'. While the D-6 has no living amenities, an L-14 has power, a stove, a mini refrigerator, and a bed [@kresnek_lookout_1969]. The 2024 season is the first occupation of a Dutchman in two decades (Est.), only occupied by USFS staff during storm events or active fires. The 2024 served as a test run in determining long term viability of the Dutchman Peak Lookout.
+
+[![circa.1930, no radio wires have been added yet](img_lookout/dutchman31_nps_1930.JPG){fig-alt="Dutchman Peak lookout tower 1930" width="90%"}](https://npgallery.nps.gov/GetAsset/e25ebea7-0b59-4c7c-8831-d65f0c5bf9bc/)
+
+::: {width="45%" layout-ncol="2"}
+[![est.1942](img_lookout/dutch30_manspeak_54.jpg){fig-alt="Dutchman Peak fire lookout tower 1942" width="90%"}](https://www.firelookout.com/or/dutchmanspeak.jpg)
+
+[![circa.1984](img_lookout/dutch05_1984_54.jpg){width="90%"}](https://oregonlookouts.weebly.com/uploads/1/5/9/1/1591048/8888023_orig.jpg)
+:::
+
+::: {width="45%" layout-ncol="2"}
+![circa.2007](img_lookout/dutch13_2007_peakbaggers_54.jpg){fig-alt="Dutchman Peak fire lookout tower 2007" width="90%"}
+
+![circa.2024](img_lookout/dutch29_cheryl_2024_54.JPG){width="90%"}
+:::
+
+# Operations
+
+## Technology Enhancement
+
+#### Observation
+
+Many agencies need increased technology adoption but are hindered due to software and hardware costs, employee training and retention, and generational age gaps. Papered forms are used to record weather, fires, and daily logs. Logs are not monitored or reported, except for one weather report to an adjoining District. Fire Prevention provided three log forms in 2024: two ICS forms and one lookout log. Fire Report form (circa 1963) is self-explanatory, but additional fire log sheets are redundant. Resupply is done through phone requests, and fire reporting is strictly visualization, then relayed via radio traffic. Analog maps do not cover outside the district, and the lookout must rely on personnel devices to determine if distant smoke has been reported, the district its in, and then who to call.
+
+#### Recommendation
+
+Esri technology products, including Dashboards, Experience Builder, Field Maps, and Survey123 Connect, offer the USFS significant benefits in simplifying reporting and enhancing situational awareness. These products enable sophisticated surveys, such as automatically calculating fire size using the Osborne Fire Finder formula. With a cellular tablet, lookouts can stay connected and provide real-time updates. Fire services can receive automatic email or cellphone notifications with images when a fire is spotted, improving response times and situational awareness. Surveys can be used to track logistics such as fuel, batteries, or toiletry supplies for resupply. Surveys have maps that allow a pin drop for the exact fire location. The survey information can be routed into Dashboards along with any base layer information, such as linking current fires from the national fire database using API calls and filtering for distance around the lookout, which increases app load time. Web App Builder (WAB) tools, like the distance and direction widget, help determine if an API call fire has already been reported. Esri maps can be displayed in 2d hillshades or rendered in 3d. Further widgets can quickly determine a firefighters elevation ascent/descent, with an elevation profile so units understand approach difficulties (ref. Stein Butte Fire Aug 2024).
+
+To develop such an app, the USFS Geospatial Technology and Application Center (GTAC) should lead in-house development or contract through Esri Professional Services. Star's GIS capability is limited due to the level of licensing for the Esri AGOL suite of apps, hampered by the connectivity requirements of ArcGIS Pro through a Virtual Private Network (VPN), and laptop performance.
+
+## Documentation, Guidance and Manuals
+
+#### Observation
+
+Every government agency has Standard Operating Procedures (SOPs) that provide governance over duties. The Dutchman's documentation ranges from the 1930s to 2015. Outdated documentation is not a Siskiyou Mountain Ranger District (SMRD) issue but a Department of Interior-wide problem (USFS, NPS, BLM, BIA, etc.). Dutchman Lookout has a composite of current and historical documentation going back to the 1930s. Much of this information is redundant or insignificant. For instance, the lookout will never need the phone number of a GS04 engine crew member in another district. Overwhelming employees with "nice to have" papers results in abstaining from reading.
+
+#### Recommendation
+
+Host a winter conference of representatives from different agencies to include personnel past and present with backgrounds in fire, ecology, recreation, lookout, etc.. The conference will determine a Standard Operating Procedure (SOP) as the federal standard. Each district is then responsible for modifying appendixes for each district's respective tower types and terrain conditions. A remote tower in Glacier National Park accessed only by mule or foot, is vastly different then an Arizona lookout surrounded by cheat grass and cactus. Include instruction on misc things such as hunting regulations, trespassers, and drone flights around tower.
+
+## Area Familiraty Operations
+
+#### Observation
+
+During the first two weeks, pay period 11, the lookout spent time cleaning Star Ranger Station, conducting chainsaw classes, online training, and prepping the tower for the opening season.
+
+#### Recommendation
+
+While online training is mandatory, chainsaw and cleaning are not. Utilize this time by having the lookout drive around the district, identifying terrain features, and road knowledge to provide better-suggested routes to fire units.
+
+## Safety using the 4F'*s*
+
+### 1. Firearms
+
+#### Observation
+
+Human safety in remote conditions is a paramount concern. The lookout is responsible for their protection, with law enforcement officers (LEOs) over two hours away. As per the old lookout documents, firearm use is permissible. Because lookouts are not LEOs, they are not allowed to open carry and should have the firearm hidden from public view. Meanwhile, armed hikers and hunters approach the tower routinely with unknown intentions. It's highly plausible at any time, extremist organizations such as militias, sovereign citizens, Earth Liberation Front (ELF), or Antifa could threaten the life of a lookout. Only one encounter by a hunting scout in early June made threatening gestures with his pistol, unlocking and locking his safari land holster as if ready to draw on USFS. Less than 2% of encounters throughout the season involved open-carry citizens.
+
+#### Recommendation
+
+Until a DOI SOP is written, the lookout should have a rifle tucked away. A rifle will protect against combatants, lions, or bears. For close encounters, the lookout must rely on blades or hand-to-hand combat.
+
+### 2. Fire Evacuation
+
+#### Observation
+
+While firearms discuss protection against homegrown extremist organizations, a higher threat level should be levied against overseas terrorist organizations. This document is not political, but due to immigration policies, countries flagged by the US State Department have crossed the border in greater numbers. Mass immigration of unemployed illegal aliens are at risk of manipulation for paid terrorism acts by the former. The act of pyro-terrorism by cells strategically placed throughout the country in a coordinated attack could devastate the country[@baird_pyro-terrorism_2005]. The scenario of pyro-terrorism has been on the DOD radar since WWII Japanese balloon bombs landed throughout Oregon, killing six picnickers in May 1945 [@hayes_confidential_1945]. A well-coordinated attack on America's forests would involve locations with quick ingress/egress routes, remote enough not to be spotted, lookouts that have communications towers, and areas that straddle borders (state, county, or agency) to aid in confusion. Dutchman Peak would rate a 5 of 5 for these terrorist cells. In the below chart, these staggering numbers are only those caught, in a specific region.
+
+The Dutchman fire evacuation plan was last updated ten years ago, in 2015. The instructions on where and when exactly to exfil from the tower are pretty vague. Dutchman needs an emergency foot evacuation and a planned vehicle route, with both depicted on a map
+
+#### Recommendation
+
+Fires west of Dutchman with high burn rates can quickly engulf USFS vehicles while blocking the road. During the 2024 season, bushes were trimmed along the east ridge for foot escape, which goes down into the saddle. The lookout can head north along the cow trail or Sally Glade ridge from the saddle to a hidden pond/spring situated on the west slope before reaching Little Red Mountain. The lookout can use a camelback hose while submerged in an emergency.
+
+```{r}
+#| label: isis-image
+#| echo: false
+
+isis <- magick::image_read(here("img_icon/Islamic_State_flag.png"))
+```
+
+```{r}
+#| label: terrorist-chart
+#| echo: false
+
+bp <- read_ods(here("borderPatrolStat.ods")) %>% clean_names()
+colnames(bp) <- c("Year", "Incidents")
+
+bp.chart <- ggplot(data = bp, 
+                 aes(x = as.character(Year),
+                     y = Incidents)) +
+  geom_bar(stat = "identity", colour = "firebrick4", 
+           fill ="firebrick", width = .8, size=.8) +
+  labs(title = "Border Patrol arrests of watchlisted terrorists",
+       subtitle = "Southern ports of entry 2017-2023",
+       caption = "Source: US Customs and Border",
+       x = "Incident Year",
+       y = "Total") +
+  geom_text(aes(label = Incidents), vjust = -1.0, 
+            colour = "black", size = 3) +
+  ylim(0,175) +
+  theme_light() 
+
+ggdraw(bp.chart) +
+  draw_image(isis, x = -0.3, y = 0.2, scale = .2)
+
+```
+
+### 3. Fire Prevention
+
+#### Observation
+
+The Dutchman Fire Evacuation document specifically points out regulation PRC 4291, which states that a defensible space of 100 feet is clear of flammable material around structures. In 1939, panorama pictures were taken in all directions, depicting clear views with no bushes or trees. These bushes now surround the lookout at a height of 5-12ft, and trees have grown to such an extent the lower half of the tower can not see to the NW.
+
+![crica.1939, looking north](img_lookout/dutch08_n_19390328.jpg){width="99%"}
+
+![circa.1939, looking southeast, pack mules in foreground](img_lookout/dutch09_se_19390328.jpg)
+
+![circa.1939, looking southwest](img_lookout/dutch07_sw_19390328.jpg)
+
+#### Recommendation
+
+While visiting the Dutchman, USFS supervisor stated that trees and bushes can be “topped, lopped, and trimmed” without environmental plans. Utilizing regulatory knowledge, send the engine crews to mark off a circumference of 100ft around each structure and begin lopping. The lookout can not do their job if the tower burns down due to excess fire fuels or the lookout cannot see the forest due to overgrown trees.
+
+### 4. Fuel Storage
+
+#### Observation
+
+The fuel cans were initially collocated with the generator beside the tower. Containers were then moved roughly 25ft of distance from the tower inside the old weather box to provide fuel offset.
+
+#### Recommendation
+
+A lockable metal box (bear box) used for campsites would be better. Locked fuel reduces an arsonist from starting a facility on fire and possibly prevents fuel from catching on fire.
+
+### 5. Security
+
+#### Observation
+
+Theft is a daily worry when away from the tower. The more personal items in the tower provides a sense of occupation, thus less likely to be stolen as the lookout may return at any minute. When leaving the tower, take or lock sensitive items (computers, firearms, etc.) in the cupola. ATVs are a , concern, as they can quickly maneuver around the gate and have a platform to steal large items like the generator or personnel solar devices. Some trespassers, after posted hours of 0800-1800, can be aggressive, and there is no regulation governing trespassers.
+
+#### Recommendation
+
+It is almost impossible to stop a determined thief. However, simple steps can deter them. A large boulder sets abreast of the gate and could be easily winched along the side to prevent ATVs from crossing. Two to three concrete posts and barbwire would be the best solution. Continue advising trespassers of posted hours and provide them with an alternative hilltop to watch sunsets.
+
+## Weather
+
+### Weather Recording
+
+#### Observation
+
+As multiple people staff the lookouts, their interpretation of recording weather differs. The data must be recorded as a single entry point for statistical analysis. Examples include not putting a line through wind velocity but instead recording as 0 or for a velocity of 3-9, lookouts should use an average or max but keep consistency in recording. Additionally, ‘Calm’ is not a wind direction. Even at .01 miles an hour, the wind gauge will display a cardinal direction. Daily fire reports come from the [NOAA Fire weather](https://www.weather.gov/wrh/fire?wfo=mfr&LAT=42.0788&LON=-123.1439 "621") zone 621,623. The weather prediction is based off of two lower elevation locations, Acorn Woman (4,984') and Mt. Stella (4,715'). Temperatures range between 10-30° difference from Buncom, J-Ville, or the NOAA report.
+
+#### Recommendation
+
+Using surveys with structured input requirements eliminates multiple lookout personnel from recording weather to their preferential styling. As an example, by recording single-point entries, the following empirical information is derived.
+
+```{r}
+#| tbl-cap: "Weather-1"
+#| label: weather-read
+#| tbl-cap-location: bottom
+#| echo: false
+
+weather <- read_ods(here("weatherReading.ods")) %>% clean_names()
+
+#fix times
+wet_time <- sprintf("%04d",weather$time)
+wet_dtm <- paste(weather$date, wet_time)
+wet_dtm2 <- ymd_hm(wet_dtm)
+
+wet_tbl <- weather %>% 
+  mutate(direction = str_to_upper(direction),
+         dtm = wet_dtm2,
+         time = wet_time,
+         pos_date = as.Date(format(dtm, "%Y-%m-%d")),
+         pos_month = lubridate::month(dtm, label = TRUE, abbr = FALSE)) %>% 
+  select(dtm, temp, humidity, wind, direction, pos_date, pos_month)
+```
+
+```{r}
+#| label: weather-chart
+#| echo: false
+
+season_avg <- wet_tbl %>% 
+  group_by(pos_date) %>% 
+  summarise(avg_temp = mean(temp),
+            min_temp = min(temp),
+            max_temp = max(temp))
+
+season <- ggplot(data = season_avg, 
+                 aes(x = pos_date, y = avg_temp))+
+  geom_ribbon(aes(ymin = min_temp,
+                  ymax = max_temp),
+              fill = "lightskyblue1",
+              alpha = .50) +
+  geom_line(colour = "blue", 
+            linewidth=.75)+
+  geom_point(colour = "navyblue") +
+  geom_line(data = season_avg, aes(x = pos_date, y = min_temp), 
+            colour = "red",
+            alpha = .25,
+            linewidth = .5,
+            linetype = 2) +
+  geom_point(data = season_avg, aes(x = pos_date, y = min_temp), 
+             colour = "red",
+             alpha = .25,
+             size = 1)+
+  geom_line(data = season_avg, aes(x = pos_date, y = max_temp), 
+            colour = "forestgreen",
+            alpha = .25,
+            linewidth = .5,
+            linetype = 2) +
+  geom_point(data = season_avg, aes(x = pos_date, y = max_temp), 
+             colour = "forestgreen",
+             alpha = .25,
+             size = 1)+
+  labs(title = "2024 Seasonal Weather",
+       subtitle = "Dutchman Peak Lookout",
+       caption = "Date: 2024-09-12",
+       x = "Daily Recordings 17 Jun - 07 Sep",
+       y = "Average Temperature") +
+  theme_light()
+season
+```
+
+```{r}
+#| tbl-cap: "Weather-3"
+#| label: weather-table
+#| tbl-cap-location: bottom
+#| echo: false
+
+#create a grouping per month
+monthly_stats <- wet_tbl %>% 
+  group_by(pos_month) %>% 
+  summarise(min_temp = min(temp),
+            avg_temp = round(mean(temp),1),
+            max_temp = max(temp),
+            total_recordings = n())
+```
+
+```{r}
+#| tbl-cap: "Monthly weather statistics; Expect colder results in Jun and Sep with complete data"
+#| label: weather-table-display
+#| tbl-cap-location: bottom
+#| echo: false
+
+weather.tbl <- flextable(monthly_stats) %>% 
+  border_outer(part = "all") %>% #add some border
+  border_inner(part = "all") %>% 
+  bold(part = "header") %>% 
+  autofit() %>% 
+  theme_zebra() %>% 
+  align(align = "left", part = "all") %>% 
+  fontsize(size = 10, part = "body") %>% 
+  set_header_labels(pos_month = "Month",
+                    min_temp = "Low",
+                    avg_temp = "Average",
+                    max_temp = "High",
+                    total_recordings = "Num Weather Recordings")
+
+weather.tbl
+
+
+```
+
+### Weather and Seasonal Considerations
+
+#### Observation
+
+Lookouts must be prepared for three seasons at Dutchman by bringing sleeping bags and clothing for 21°-82°. Snow fell in both June and August. A new weather station was installed; however, the precipitation gauge is inaccurate due to weather conditions. During storm events, the wind reaches 30-50mph, making it difficult for rain, hail, or snow to fill the catchment cup. At 50mph, the south windows begin flexing inward, and were nailed shut. This same event the cupola begin dropping rain profusely on the Osborne, so a pot was set down to catch the water. The high winds are why the original analog weather station was located in a wood slated box which allowed water to drip down.
+
+Hunting season begins on Labor Day weekend, which makes it the busiest weekend of the season. Bugs began defrosting at the end of June, and by July, the flies, no-see-ums, bees, grasshoppers, ladybugs, and butterflies were in full effect. The elevation puts the lookout closer to the sun, increasing skin cancer risk. When ascending the mountain, water jugs and fuel jugs expand, and crush on descent due to weight of pressure. At least once at Dutchman, weather caused an inverse pressure system with all jugs crushing, and the lookout experienced a semi-bloody nose throughout the day.
+
+#### Recommendation
+
+During cold events, close the cupola trap door. When it's hot, keep the trap door and cupola windows open to allow airflow. Use deet to ward off bugs and sunblock for the sun. For no-see-ums, a mixture of water and white vinegar in a bowl is reported to help, but the result was lackluster. For elevation changes, ensure you can valsava during ascent and descent. For those with valsava problems chewing gum helps *pop* the ears.
+
+## Communications
+
+#### Observation
+
+Initial traffic between Dutchman and Rouge-Siskiyou National Forest dispatch (RSNF) was aggravating. One handheld radio scanned two districts, RSNF and the Klamath National Forest (KNF) in California, step on one another. No other Lookout monitors two dispatch districts with a single radio. Both units operate their weather and check-ins at the same time (table). The handheld radio push-to-talk (PTT) button failed and was replaced by fire prevention. A charging station and batteries were provided without a way to charge the DC voltage. Thus, multiple cases of "AA" batteries were used for the handheld at a rate of 2-3 changes per 10-hour shift, depending on temperature. Recording weather reports by the RSNF female was hard, as she was often muffled due to handmike-to-mouth distance and delivery speed. Coordinates for fire reporting came in multiple forms, making copying difficult. When radio dispatch provides locations such as *Somewhere Gulch* (not real), it is like a needle in a haystack unless a lookout has spent extensive time in the district.
+
+```{r}
+#| tbl-cap: "Daily battle rhythm"
+#| label: battle-rhythm
+#| tbl-cap-location: bottom
+#| echo: false
+
+battle <- read_ods(here("lookoutCards.ods"),sheet = "battleRhythm") %>% clean_names()
+
+#fix times
+ref_date <- today()
+ref_time <- sprintf("%04d",battle$time)
+ref_dtm <- paste0(ref_date, ref_time)
+ref_dtm2 <- ymd_hm(ref_dtm)
+time <- format(ref_dtm2, format = "%H:%M")
+time2 <- as_hms(ref_dtm2)
+
+battle <- battle %>% 
+  mutate_if(is.character, str_to_title) %>% 
+  mutate(who = str_replace(who, "Rsnf", str_to_upper),
+         who = str_replace(who, "Knf", str_to_upper),
+         time = time2)
+
+battle.tbl <- flextable(battle) %>% 
+  border_outer(part = "all") %>% #add some border
+  border_inner(part = "all") %>% 
+  bold(part = "header") %>% 
+  autofit() %>% 
+  theme_zebra() %>% 
+  align(align = "left", part = "all") %>% 
+  fontsize(size = 10, part = "body") %>% 
+  set_header_labels(time = "Time",
+                    item = "What",
+                    who = "Who")
+
+battle.tbl
+```
+
+#### Recommendation
+
+KNF changed their radio tone during weather report time slots in July. Shutting the scan toggle off when receiving direct RSNF traffic reduces missed messages. Finalize installing solar power to charge handheld radios and power a base station (began Sep 06). The lookout should set the base station to RSNF, while handheld monitors KNF. Build two groups on the handheld with the same channels, with one only scanning KNF, and the other scanning the majors (Dutchman, Whiskey, Table, Project, KNF). When the lookout is away from the base station, he can change the group rather than manually turn on the scan for each channel. Teach proper radio etiquite to RSNF dispatch staff. Standardize the degrees by using LAT and LON, which technology experts use to input into GIS software (42.0436, -122.8908). When reporting a fire or situation, start with a macro (Northwest Siskiyou District), then micro (VIC west of *Somewhere Gulch*), and then map detail (T40S R2W S23).
+
+## Spotting Fires
+
+#### Observation
+
+Spotting fires improved from the south lower section after a bush was trimmed that blocked the entire view and was touching the lookout shutters (fire hazard). Treetops block the northwest views. All distant views can be seen from the cupola, but valleys to the northwest within 1-5 miles are blocked. When smoke is spotted from anywhere in and around the tower, enter the cupola to utilize the Osborne fire finder. Use sticky notes and a pencil in the cupola to write down the azimuth direction and geolocation info. The lookout created new geolocation cards in 2024 to help identify distant terrain features, elevation, and distance. Record this information and return to the map and protractor on the main level. The desk map was replaced by the lookout in 2024 with the most updated forest map. The information recorded in the cupola facilitates location confirmation and details of the fire report.
+
+#### Recommendation
+
+If the USFS instituted original fire lookout coverage per the intent of the original Lookout program, adjoining towers such as Acorn Woman, Tallowbox, Mt. Ashland, and Whiskey Peak would provide dead space coverage. The Osborne fire map pre-dates the Applegate dam, and new naming convention of terrain features. Replace with a new laminated map for the 2025 season.
+
+## Living Quarters for Lookouts
+
+#### Observation
+
+Living conditions, pay, and hardship are the most significant contributors to the Dutchman Lookout going unstaffed for two decades. The lookout should not house an employee for more than two-three overnights, as the lookout is equivalent to a camping trip. The former house can not be occupied. All the creature comforts of home a person takes for granted come to bear after the first 13 days, one-day off shift. There is no heat, cooking, water, bed, showers, power, refrigeration, lights, etc (see logistics section). Supervisors must conduct feasibility and cost analysis studies to decide a course of action while accounting for personnel management. Each recommendation requires new gravel and blade work from the 20-road to the lookout. By relocating the gate to 800/805 junction will prolong the life of the road.
+
+1.  Rebuild House
+
+    1.  Mt.Stella lookout (circa.1933) has the same CCC garage turned into a house. Photos are available to visualize building requirements that depict the interior subfloor, walls, and ceiling. Start by taking the entire structure to the studs, saving windows for reconditioning. Extend the ceiling to the roof line to regulate temperatures. Wall the bathroom in and open the wall between the bathroom and bedroom. The walled bathroom allows a wrap-around kitchen complete with cabinetry, a propane stove, a refrigerator, and gravity-fed water from a 100gal tank, which can be pumped via electricity from the Dutchman Spring a few hundred feet down the south slope. Replace the wood fireplace with propane heating, locating a 100gal tank near the front accessible by a service truck. Add the second exterior door on the west side to a BBQ and wrap-around deck to the front foyer. Enlarge the front foyer to handle more snow gear and remove the wood storage add on. Replace roofing with original cedar shake and remove all non-house attachments such as solar and antennas. Solar panel field and additional antenna arrays can be relocated south of the circular driveway. During the winter time, the house goes on rec.gov as a snow camp rental, recouping money spent on the remodel. If the Dutchman House goes much longer, it will fall into Mt.Stella decay and be unrecoverable.
+
+![circa.1943, Mt.Stella Lookout](img_reconstruction/mtStella_%201943_169.jpg){width="80%"}
+
+![circa.2023, Mt.Stella Lookout, trees have blocked the tower view](img_reconstruction/mtStella_%202023_169.jpg){width="80%"}
+
+::: {width="45%" layout-ncol="2"}
+![circa.2023, Mt. Stella](img_reconstruction/mtStella_%202023_54.jpg){width="90%"}
+
+![circa.2023, Mt. Stella](img_reconstruction/mtStella_%202023_2_54.jpg){width="90%"}
+:::
+
+2.  New House
+
+    1.  The cost of remodeling, especially a historic structure, can be far costlier than building a new home. A relatively flat spot 100 feet to the east of the bathroom exists with an abundance of stone. Crews build a new house by combining stone walls and milled timber harvested from the trees blocking the lookout view. The new structure will be smaller, cost less, and include the same amenities as the remodel.
+
+3.  Yurt House
+
+    1.  Purchase the smallest yurt available (12’). Yurt is installed in the same place as the New Build. Yurt is installed and taken down each season by recreation staff. Portable amenities include a working cot, camp stove, heat stove, generator, and tables. This option requires winter storage, and heavy man power to install and remove every season. The yurt will need special care and maintenance to prolong the material.
+
+4.  RV Rental
+
+    1.  RVs can be rented for long-term or short-term use, making this a much better option than the yurt. The road still requires an upgrade to get an RV over the terrain. The gravel should be re-leveled where the RV will sit. Solar and battery banks are required to handle 30-amp power for the RV. A sewer line hookup integrated into the current outhouse septic will need to be installed. If all these upgrades are made, a lookout could provide their own RV, saving the USFS funds. However, any damage from lightning or transportation to truck or trailer is the sole responsibility of the owner and not the USFS.
+
+5.  RV Pads at Star
+
+    1.  Combining the RV rental scenario and returning to quarters after every shift, SRMD installs a 2-4 RV pads at Star Ranger Station. Two pads would cover two lookouts, while two pads could cover general staff. This option is the most flexible, cheapest, and could allow for 30-60 day lookout rotations like camp hosts.
+
+# Recruitment
+
+#### Discussion
+
+Housing at the lookout was previously discussed, which directly affects hiring. How are lookouts being housed in the High Cascades and KNF? From radio traffic, most lookouts go out of service 1hr before the shift ends en route to quarters. If SMRD adopts this model, will the lookout have a room in the USFS house, and at what cost? In a 40-hour work week, an employee brings home roughly \$1300. The ranger house cost is divided by the room price; thus, if only one person occupies the house, \$1600 is deducted from their pay. If the USFS had installed a commissary, it would have been equivalent to the mining camps of the early 1900s, which cycled all the miners pay for housing and food into the company coffers. Be flexible on hiring schedules, as getting more bodies might be the best approach. It's doubtful that the USFS would find any 10 hours daily for 13 days with 1 day off employees. The lookout job requires sitting all day, so SMRD should allow patrolling throughout the day to keep the younger staff from quitting. The ideal candidate is most likely a person on social security, is not active, reads books, has never used computers, and dislikes people (the old curmudgeon on the mountain).
+
+#### Recruitment and Advertisement
+
+USAJOBs is excellent for people who know the lookout hiring system, but it needs to reach the locals. Start by posting flyers at the campgrounds and grocery stores in Applegate, Ruch, and J-Ville. High schools and colleges are excellent sources for young people; be prepared for shorter seasons when they return to school. A college student at OSU could get credit for an internship studying various forestry, botany, ecology, etc., while getting paid. Likewise, a high school graduate who is the son of a forest employee or part of the Boy Scouts could fill the lookout while waiting to start college. For example, at NPS SHEN, one rec-tech supervisor is a high school track and field coach. He recruits his athletes into the trail crew out of high school and every summer during their local college tenure, thus having a stable workforce for 4-6 years. The process involves creating sign-up surveys that are hyperlinked with a QR code on paper advertisements. Prior to USAJOBs posting, Star can email all intersted parties which then puts the onus on serious inquiry candidates.
+
+#### Retired Employees
+
+Recreation employee John M. (GS07 Step10), who currently acts as the fill on days off or in the past during storm events, would make the best lookout. At 71 years of age, he's healthy as an ox and has been with SMRD for over 30 years, making him the most knowledgeable employee on terrain and its history. He must retire and return as an AD to be the full-time lookout. The likelihood of him retiring for half the pay and no longer receiving the same benefits for the same job he can do occasionally is zero. As USFS identifies retirees as the best source for lookouts, managers must consider their needs. First, they do not sleep on broken Army cots for an entire summer. Many older adults have limited mobility and cannot climb stairs or cupola ladders, walk steep trails to use the bathroom, or lug water jugs up to the tower. They need power to run CPAP machines, lights, and refrigeration for dietary needs. On the other hand, these elderly, who are local, can leave the lookout every shift to their residence and return with their sack lunch for a few hours a day.
+
+#### Off Mountain Living
+
+When considering the pros and cons of each course of action, consider the timeline for coming off the mountain. If local hires work an 8-hour shift and follow the typical SMRD scheduling, expect about 3.5 hours of shift coverage from the tower. Keeping a lookout at Dutchman not only provides a full days coverage, but passive monitoring outside of duty hours, which should be considered when evaluating cost analysis for housing options.
+
+```{r}
+#| tbl-cap: "Off mountain scheduling"
+#| label: off-mountain
+#| tbl-cap-location: bottom
+#| echo: false
+
+
+#fix times
+start <- c("2024-09-12 0830",
+              "2024-09-12 0930",
+              "2024-09-12 1030",
+              "2024-09-12 1130",
+              "2024-09-12 1500",
+              "2024-09-12 1600",
+              "2024-09-12 1700")
+
+end <- c("2024-09-12 0930",
+              "2024-09-12 1030",
+              "2024-09-12 1130",
+              "2024-09-12 1500",
+              "2024-09-12 1600",
+              "2024-09-12 1700",
+              "2024-09-12 1700")
+
+action <- c("In service Nursery, Drive from Nursey to Star",
+            "1 hour of fitness for forest service employees",
+            "Drive from Star to Dutchman",
+            "Lookout Duties = 3.5 hrs",
+            "Drive Dutchman to Star",
+            "Drive Star to Nursery",
+            "In quarters Out of Service Nursey")
+
+tbl <- tibble(start, end, action)
+              
+
+nursery <- flextable(tbl) %>% 
+  border_outer(part = "all") %>% #add some border
+  border_inner(part = "all") %>% 
+  bold(part = "header") %>% 
+  autofit() %>% 
+  theme_zebra() %>% 
+  align(align = "left", part = "all") %>% 
+  fontsize(size = 9, part = "body") %>% 
+  set_header_labels(start = "Start",
+                    end = "End",
+                    action = "Action")
+
+nursery
+
+```
+
+#### Scheduling
+
+Continue to offer maxi flex schedules with a 4x10, 5/4x9 split, or traditional 5x8. In 2024, the 4x10 schedule was increased to 13x10, allowing one day off. If an employee works 14 days in a row, the agency owes that employee three paid days off. Squeezing the lower-wage employee (GS05 Step01) for as many hours as possible before the relief (GS07 Step10) assumes duty is a financial win for the USFS.
+
+```{r}
+#| label: paychart-data
+#| echo: false
+
+#create data
+rnames <- list("week11", "week12", "week13", "week14", "week15", "week16", "week17")
+cnames <- c("week", "pay_start", "pay_end", "basehour", "holiday", "overtime")
+pay_start <- c("2024-06-03", "2024-06-15", "2024-06-30", "2024-07-14", "2024-07-28", "2024-08-11", "2024-08-25")
+pay_end <- c("2024-06-14", "2024-06-29", "2024-07-13", "2024-07-27", "2024-08-10", "2024-08-24", "2024-09-07")
+pay_week <- c("week11", "week12", "week13", "week14", "week15", "week16", "week17")
+base = c(80, 80, 80, 80, 80, 80, 80)
+holiday  = c(0, 0, 10, 0, 0, 0, 10)
+overtime = c(0, 22, 36, 70.5, 50, 45, 42.5)
+
+# make tibble
+paychart <- tibble(pay_week, pay_start, pay_end, base, holiday, overtime )
+colnames(paychart) <- cnames
+
+#create a total per week
+paychart <- paychart %>% 
+  mutate(total = rowSums(across(where(is.numeric)), na.rm=TRUE))
+
+#create total hours
+hours <- paychart %>% 
+  summarise(base = sum(basehour),
+            overtime = sum(overtime),
+            holiday = sum(holiday)) %>% 
+  mutate(total_hours = overtime + base + holiday)
+```
+
+```{r}
+#| tbl-cap: "Pay period scchedule for 2024"
+#| label: schedule-week
+#| tbl-cap-location: bottom
+#| echo: false
+
+
+payflex <- flextable(paychart) %>% 
+  border_outer(part = "all") %>% #add some border
+  border_inner(part = "all") %>% 
+  bold(part = "header") %>% 
+  autofit() %>% 
+  theme_zebra() %>% 
+  align(align = "left", part = "all") %>% 
+  fontsize(size = 9, part = "body") %>% 
+  set_header_labels(week = "Week",
+                    pay_start = "Start",
+                    pay_end = "End",
+                    basehour = "Base",
+                    holiday = "Holiday",
+                    overtime = "Overtime",
+                    total = "Total")
+
+payflex
+```
+
+```{r}
+#| tbl-cap: "Total hours for 2024"
+#| label: schedule-season
+#| tbl-cap-location: bottom
+#| echo: false
+
+
+hourflex <- flextable(hours) %>% 
+  border_outer(part = "all") %>% #add some border
+  border_inner(part = "all") %>% 
+  bold(part = "header") %>% 
+  autofit() %>% 
+  theme_zebra() %>% 
+  align(align = "left", part = "all") %>% 
+  fontsize(size = 9, part = "body") %>% 
+  set_header_labels(overtime = "Overtime",
+                    base = "Base",
+                    total_hours = "Total",
+                    holiday = "Holiday")
+
+hourflex
+```
+
+# Logistics
+
+## Overview
+
+The USFS provided little support for lookout logistics at the Dutchman. The lookout will need to be self-sufficient in every logistical aspect, with the exception of a generator and fuel, "AA" batteries, and cleaning supplies. The recruitment section does not discuss the payout of per diem. Per diem is a government stipend to cover the cost of excess hardship on government employees while away from home station. Per diem is paid to each fire engine crew for anyone outside of SMRD. One of the manual binders provided at Dutchman is the 1938 USFS Lookout Cookbook. The requirements for the cookbook were that all recipes had to be with supplies **furnished by** the USFS. Supplies included flour, sugar, bacon, steaks, potatoes, etc. It's time the USFS review how lookouts are fed, housed, and compensated for hardship duties. The logistics section is a combination of observation, recommendation, and discussion so future lookouts know what the job truly entitles.
+
+## Food
+
+No refrigeration is available at Dutchman. Yeti coolers using block ice, not provided, last 3-6 days, weather dependent. Coolers and excess water jugs are kept in the outhouse out of the sun to prolong ice. The food supply at Dutchman is a critical issue. Lots of canned food was stocked in bulk from Costco. These include canned fruit to prevent scurvy, beans, corn, tuna, spam, rice, and beans. These meals are supplemented with vegetables like onions and potatoes that have a long shelf life and require no refrigeration. Typical things that would be kept cold, like mayonnaise, jelly, etc., were kept on the shelf. A second camping table with a zipper allowed bread, bagged food, and cookware to be placed, which allowed containers and canned food to be stored on upper shelves. If the home is remodeled in the future, a garden can be planted and watered using grey water from the gravity-fed sink. Full cooked meals were occasionally swapped out for backpacker meals. Use caution on the amount of backpacker meals used as their cost range from \$9-\$17. Aside from one big Costco purchase, resupply groceries were done at Ruch or J-Ville.
+
+## Water
+
+USFS provided 2x 20-liter military jugs, and the lookout provided 1x REI 5-gallon jug (left behind). The REI water jug is kept on a table outside the lookout. Jugs and loose water bottles are filled as needed from Sheep Spring, 1.5 miles away. Rumors of the natural resource department wanting to block off vehicle access would force the lookout to drive to the trapper spring, 4 miles away, where a pipe is accessible via road 4010s. Never fill up at Wrangle Gap Spring, as dead rats get inside the spring box, and the area has cow manure. Dutchman Spring is far too steep down the mountain and requires re-tapping for flow.
+
+## Cooking
+
+The lookout used a Coleman 2 burner camp stove and an MSR backpacking stove. The fuel for the Coleman takes green 1-gallon propane bottles. The Coleman was used between Jul and Sep, using roughly ten bottles. Coleman was used outside most of the season, and cooking takes longer in high winds which uses more fuel cans. The August cold snap forced the stove inside for the remainder of the season, which took up counter space. Two bowls were left behind to add to the previous array of lookout cookware: 2 x forks, 2 x spoons, 2 x coffee cups, 1 x plate. A coffee camp stove was also left behind. Ensure all food is in containers, and check routinely; an old nut container with a screw-on lid still managed to get spiders, moths, and knats inside. The MSR stove boils water quickly. Use this for everything from hygiene to food. Most coffee drank was instant style to take advantage of the MSR stove. The MSR used a mixture of large, medium, and small canisters. For visualization usage, estimate a total of 5 large cans. All stoves, pots, pans, cookware, and fuel are purchased by the lookout. USFS did provide 2 x cans for the stove once during 2024 season.
+
+## Dishwashing
+
+A 3gal collapsible REI bucket sits underneath the table, catching dripping water from the REI jug. The lookout purchases dish soap, wash sponges, pan scrappers, etc, to maintain the dishware. On three separate occasions during the day, rodents climbed in the dish bucket and died: 2 x kangaroo mice and 1 x giant wood rat. One of the kangaroo mice sunk to the bottom and was found when "fishing" for silverware. Utilize plenty of bleach to clean the bucket. Do not leave dirty dishes overnight unless submerged in the water. An animal living under the lookout, accessed on the south side, dragged a bowl with tuna remains to the edge of the wall hole one evening.
+
+## Trash
+
+A small trash can is in the lookout. Recreation brought a metal campground can located in the woodshed. Place full bags inside the large can from the lookout and then bring these down during the off day. A composting pile can be added in conjunction with a garden during a house remodel to reduce trash. Roughly 100' northeast of the house is the original trash pit, which can be dug up during remodel excavation work.
+
+## Restroom
+
+The outhouse, located 70 feet below the lookout, serves as a restroom for visitors. It is accessed via one of the two-foot trails. Toilet paper usage depends on the number of visitors and the consumption of lookout food. For planning purposes, 1-2 single-ply USFS rolls are enough weekly. On cold, windy nights, it's advisable to check the flag's wind direction and move to the opposite side of the tower deck to avoid urine blowing back. A 1-gallon water jug can be used inside the tower at night and emptied away from the tower in the morning. It's recommended that the USFS provide bags of lime to cover up the urine smell around the tower. In the absence of lime, during cleaning days, toss the bleach/pinesol mixture water bucket on the most saturated area.
+
+## Laundry
+
+A laundry bag tucks between the cot and the built-in cabinet. Star has a washer and a dryer; bring your soap and dryer sheets. Start laundry in the evening at the end of day 13 while getting your first hot shower. Clothes, as well as extra food, were stored in two plastic Gregory boxes. They are lightweight, seal, and prevent over packing, making transport from truck to tower easy. A Gregory basket was used to store and carry bulky items like shoes, lanterns, sleeping bags, etc. All three of these Gregory storage containers fit underneath the cot, reducing clutter in the tower. The tower tie-downs double as the lightning dispersal. Clothes pins were attached for hanging wet clothes and towels, but a person could do manual laundry by purchasing buckets, laundry scrubbers, and bar laundry soap. If the home remodels occur, add an outdoor washing machine with an adjacent clothes hanger for sun-drying laundry.
+
+## Sleeping
+
+The USFS provides one broken cot for the tower. By broken, this means both ends of the military cot have no knobs for the end bars to sit inside, causing the center to concave and reducing the overall length of the cot. A bed roll purchased from Amazon helped the sinking cot, but be prepared for lots of aspirin. The inside of the tower temp fluctuates between -5° to +5° of the outside temperature. The temperatures at Dutchman ranged from 21° – 85°, requiring three sleeping bags: Summer 55°+, Intermediate 25°+, and Winter -20°. These are the rated survival rates, not comfortability, so weather and personal desire for warmth are individual dependent. Keep in mind, there is a big difference between "roughing it" for a weekend versus spending 3 to 5 months living on a remote mountain at 7,417ft. During the remodel of the house, add a twin XL bunkbed with a comfortable mattress. For those with a CPAP machine, the lookout will need to purchase a large goal-zero solar panel and battery.
+
+## Heat
+
+The USFS provided a generator with a space heater after temperatures reached 21°. To maintain the heat, the trap door should be kept closed to reduce heat escaping. Colder weather requires increased fuel burn, at a rate of five gallons every 2-4 days, whereas warm weather is extended to two weeks for charging devices. Request fuel via Star, as the lookout vehicle can not transport fuel cans. An exception is made for three MSR chainsaw bottles that seal. These are topped off each time the vehicle refueling takes place at Star and serve as emergency bottles until fuel is delivered. Use the generator sparingly, as asking for fuel is a burden that pulls fire forces from their usual duty.
+
+## Cleaning
+
+The window interior and exterior are typically cleaned every two weeks. During a storm event, they may need re-cleaning as the lookout presses their face and hands against the windows to block out sun reflections while determining differences between water dogs and smoke trails. Baseboards and window sills get cleaned once a month. Floors are swept daily and floors are mopped on days when leaving tower. Lookout should have at least one jug of water on the day leaving tower to still fill water bottles, clean dishes and fill the mop bucket (white bucket) half full. Use a mixture of pine sol and bleach in the bucket, then toss the used bucket of water on the highest urine smell around the tower. Sweep the bathroom out as needed. All cleaning supplies are stored in the lookout cupboards.
+
+## Bathing
+
+With a ten-hour shift, taking a shower at high-noon for the water and for the body to warm up is ill-advised. A hiker, mountain bike, or electric bike could show up at any time. Your showers are limited to off-hours posted on the gate: 0800-1800. At 1800, going for a trail run that takes 1-2 hours puts showering as the sun goes down and the wind picks up. Showering is not an enjoyable experience. Lookout used heated water from an MSR stove to wash hair every few days, and body wipes cleaned the rest. Very rarely did the lookout take full-body showers. Shower terminology is loosely used, as these showers pour water over one's head and splash the water on the body. The lookout has a solar shower, which can be hung from a hook on the southeast tower guide wires closest to the door. The solar shower hose kinks, which stops the flow, so removing the hose is best to let water pour out like a facet. Testing found that using heated MSR water was better than the solar shower, as the bag hangs low and is better suited for someone 5'7" and smaller.
+
+## Vehicle
+
+USFS provides a Jeep Trailhawk with enough room to bring everything needed for a 13x10 schedule. Providing a truck next season will allow the lookout to resupply their generator fuel. The open back-end results in dust covering personnel gear when they reach the lookout. USFS can provid red North Face bags issued to firefighters for dust issue. Do not use your personnel vehicle as that's two hours of driving to the lookout from the nearest gas station in J-ville. Always fill up in J-Ville before coming to Star as a fire can block the Applegate road with the only option out is Star Gulch or the Ashland Loop (ref. Applegate Fire, June 2024).
+
+## Star Lookout Kit
+
+A fire lookout kit exists at Star, discovered after finishing the season. It's unknown what the kit includes, but it can include a fire blanket, foldable handsaw, magnetic compass, headlamp, and GPS with topo maps. All these items can assist foot escape during a wildfire.
+
+## Fitness, Mobility and Health
+
+At the heart of all protection jobs, the risk of complacency and boredom is managed through a well-structured rotation system. Security guards are rotated out every 1-2 hours, ensuring their alertness and effectiveness. Anodotically, a lookout is much like a hamster living in a cage. The life expectancy of the hamster increases by adding a wheel, enlarged space, and chew toys (activities). The following tips reduce diabetes, scurvy, and sore bodies from a sedentary lifestyle.
+
+A Pomodoro timer can be set for increments between 5-45min. When the alarm goes off, review the landscape for smoke and do a quick exercise (pushup, situp, chair-dip). The lookout can raise the ladder for yoga mat space in the morning and utilize exercise phone apps such as Peloton. The Tower in Place Run (TIPR) was invented during the cold August snap. A TIPR is what it sounds like, running in place while watching a TV show for 45 minutes. On a standard ten-hour day, the lookout can trail run between 2-8 miles. Be cautious; there's a short window while the temps drop, the wind picks up, and the sun sets quickly, especially on an extended staffing day. Always carry a garmin GPS loaded with topo, and the USFS radio in a camelback, along with the other 10 essentials of hiking during the trail runs. Fresh oranges, bananas, and apples for the first half of a 13-day shift are supplemented with canned fruit of pineapples and peaches. Motivation is the biggest killer of exercise activities. The lookout begins gung-ho, but as the days turn to weeks, the fitness motivation, healthy diet, and complacency begin to creep in.
+
+There are easy steps to combat these issues. Recreation can build a switchback trail from the gate up the east hill, down the saddle, and back up to the lookout. The trail now creates a loop that comes back down the road. The lookout can now run during the shift while maintaining duty at the tower. Add in pullup, pushup, dip, and situp bars after the house remodel. Lastly, the lookout should be able to vehicle patrol within a set range from the tower before the afternoon when fire caution increases.
+
+## Appointments
+
+Make appointments for early morning, such as acupuncture or chiropractor, after sleeping on the cot. Early morning reduces away time from the tower during red flag afternoons.
+
+# Conclusion
+
+Unless additional funds come from various congressional bills, such as the Inflation Reduction Act of 2022, the USFS cannot remodel, build new, continue discounted housing rates, or offer per-diem rates to lookouts. SMRD must fill the lookout from within its ranks, rotating employees through on a two-night, three-day rotation, with no supervisor exempt. Employees include fire, recreation, natural resources, and office staff. Conditions of the lookout will only improve once leadership also bears witness to the Dutchman; as the saying goes, what is good for the goose is good for the gander. Internal staffing is unlikely, so the other option is to work with the Oregon Department of Forestry (ODF) to reinstall the camera system. Once the camera provides visual coverage, put a new coat of paint on Dutchman as a minimum to be added to SMRD rental program with Acorn Woman Peak L.O. on the rec.gov website. With Dutchman as a rental unit, spend time supplying historic signs and information about the area as the Dutchman reaches its 100 year milestone. USFS will make money off of Dutchman, while ODF funds the observation.
+
+## Acknowledgments {.appendix}
+
+Thank you to all the USFS staff who keep the forests, towns, and commercial industries safe. It was a unique experience to serve as the Dutchman Lookout for 2024 and learn all the requirements needed moving forward to the 2025 season. While resupply was always provided when calling Star, a special thanks goes to Alaska-64 for always asking the Dutchman if he needed supplies before patrolling the area.
+
+## Contact Information {.appendix}
+
+{{<fa envelope title="An envelope for email" size = Large >}} [tnewton.gis\@proton.me](mailto:tnewton.gis@proton.me "Email Link will open")
+
+{{<fa phone >}} [919-908-3107](tel:19199083107)
+
+{{<fa linkedin >}} [Travis Newton](https://www.linkedin.com/in/travis-newton-242b43193)
+
+## References {.appendix}
+
+[@atwood_usfs_1999], [@baird_pyro-terrorism_2005], [@department_of_interior_national_2000], [@hayes_confidential_1945][@hill_dutchman_2019], [@johnson_forest_1922], [@johnson_forest_1922], [@kresnek_lookout_1969], [@lanlade_outlook_1977], [@port_dutchman_1938]
