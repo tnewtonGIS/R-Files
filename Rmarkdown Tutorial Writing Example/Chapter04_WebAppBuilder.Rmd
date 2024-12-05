@@ -1,0 +1,436 @@
+---
+title: 
+  "Web Application: Build with ArcGIS Web AppBuilder" 
+subtitle: "Public Health Workshop: Chapter 4"
+description: "Learn to build a dashboard using Youth Tobacco survey data from the CDC"
+author: "Esri Professional Services"
+date: "`r format(Sys.Date(), '%d %B %Y')`"
+output:
+  pdf_document: 
+    fig_caption: yes
+    number_sections: yes
+    toc_depth: 3
+urlcolor: blue
+linkcolor: black
+editor_options:
+  chunk_output_type: inline
+header-includes:
+    - \definecolor{blue2}{HTML}{6495ED}
+    - \definecolor{green}{HTML}{8fbc8f}
+    - \definecolor{highlightcolor}{HTML}{0000FF}
+    - \newcommand{\degree}[1]{${#1}^\circ$}
+    - \usepackage{fancybox}
+    - \usepackage{xcolor}
+    - \usepackage{titling}
+    - \usepackage{fancyhdr}
+    - \pagenumbering{gobble}
+    - \pretitle{\begin{center}
+    - \includegraphics[width=2in,height=2in]{esri1.png}\LARGE\\}
+    - \posttitle{\end{center}}
+    - \usepackage{fancyhdr}
+    - \fancyfoot{}
+    - \renewcommand{\footrulewidth}{0.4pt}
+    - \fancyfoot[LE,RO]{\thepage}
+    - \fancyfoot[RE,LO]{\scriptsize{Copyright $\copyright$ 2022 Esri. All rights reserved. \\ HHS Public Workshop 2022}}
+    - \pagestyle{fancy}
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.align = "center")
+
+options(kableExtra_latex_packages=FALSE)
+
+library(tidyverse)
+library(kableExtra)
+library(readxl)
+library(here)
+
+
+
+#assign relative path folders to export project to Esri HAPS SharePoint
+data <- here("data")
+tables <- here("tables")
+images <- here("images", "Chapter04_WebAppBuilder")
+graphic <- here("graphics")
+```
+
+\newpage
+\tableofcontents
+\newpage
+\pagenumbering{arabic}
+
+# ArcGIS Web AppBuilder Preface
+
+## Software Required
+
+- AGOL Account
+- ArcGIS Web AppBuilder License; Essential Apps Bundle (ArcGIS Pro, Creator, Field Worker, Editor, Viewer)
+- ArcGIS Web AppBuilder Developers Edition (DE)(Optional)
+
+
+## Additional Resources Section
+
+- WebAppBuilder [homepage](https://www.esri.com/en-us/arcgis/products/arcgis-web-appbuilder/overview)
+- WebAppBuilder [documentation](https://doc.arcgis.com/en/web-appbuilder/)
+- WebAppBuilder DE [homepage](https://developers.arcgis.com/web-appbuilder/)
+
+### Web App Examples{-}
+
+- [Medication Drop Box Locations](https://chesco.maps.arcgis.com/apps/webappviewer/index.html?id=fcd6dc4ddfe24b60a17d2009e6d407aa)
+- [Health and Human Service Locations](https://chesterfieldva.maps.arcgis.com/apps/webappviewer/index.html?id=a5d5d314554b406fa5d49040f8b7f533)
+
+### Web App Builder Learning Pathways{-}
+
+- [Oso mudslide -  Before and After](https://learn.arcgis.com/en/projects/oso-mudslide-before-and-after/)
+
+## Learning Objective
+
+- Familiarization with Web AppBuilder Interface
+- Adding and configuring functional Widgets
+- Apply cartographic schema and widget tutorials (splash and about)
+- Discuss Web AppBuilder DE
+
+
+\vspace{50pt}
+\begin{center}
+\textbf{--------- Intentional Blank ---------}
+\end{center}
+
+\newpage
+
+# Section I: Web AppBuilder Web Version 
+
+ArcGIS Web AppBuilder is an intuitive what-you-see-is-what-you-get (WYSIWYG) application that allows you to build web apps without writing a single line of code. It includes tools to configure fully featured HTML apps. As you add your map and tools, you can see them in the app and use them right away.
+
+## Getting Started
+
+
+1. Log into your AGOL account 
+
+2. Go to Content > My Content > Create App > Web AppBuilder (Figure 01). Input the required metadata in (Table 01). You will input the non-required meta data items not asked for now at the end of your build.
+
+```{r image-01-createA, echo=FALSE, fig.cap= "Create an app from the My Content pane", out.width=("100%"), fig.pos="H"}
+knitr::include_graphics(here(images, "img04_1_createApp.png"))
+```
+
+```{r tbl-1-metaData, echo=FALSE, message=FALSE, warning=FALSE}
+
+dashboard.metaData <- read_csv(here(tables, "tbl04_1_metaData.txt"), col_names = TRUE)
+
+kbl(dashboard.metaData, booktabs = TRUE, align = "l", caption = "Dashboard MetaData, note to itlaic inputs for later, and bold header") %>% 
+  kable_styling(latex_options = c("striped", "hold_position"),  
+                position = "center") %>% 
+  column_spec(2, "30em")
+
+```    
+
+\newpage
+
+3. The first screen displayed will be the **theme page**. Users can select from the design list (Figure 02). 
+
+    - Theme: Foldable Theme
+    - Style: seagreen (row1, column3)
+    - Layout: icons on the left (row2, column2)  
+ 
+\begin{center}
+\shadowbox{\begin{minipage}{.85\linewidth}\textbf{Important:} Once a Web App theme is chosen, you will lose all of your widgets if you decide to change your theme setting in the future.  When exploring design strategies, add widgets without any configuration to examine layout functionality to prevent loss of hard work.\end{minipage}}
+\end{center}
+
+```{r image-02-createApp, echo=FALSE, fig.cap= "Homepage of application sets the app theme", out.width=("100%")}
+knitr::include_graphics(here(images, "img04_2_pickApp.png"))
+```
+
+4. Ribbon > Map > Choose Map > Texas Daycare Web Map HHSworkshop.
+
+    - Leave the default view for the entire state of Texas
+    - Challange: alternativly, you can load the data yourself using the daycare data. Hint: youll need to geocode the csv file from one of the available columns during the upload process.
+    
+5. *About our map*. The color ramp is based on the capacity size of the facility and then added transparency. Those points that are darker and lighter, represent large care facilities.
+
+6. Ribbon> Attribute > Branding (Figure 03).
+
+    - Replace icon: `graphic\childrenDance.jpg`
+    - Add new link:
+      - Name: Texas Childcare
+      - URL: https://www.twc.texas.gov/programs/childcare
+
+```{r image-03-addIcon, echo=FALSE, fig.cap= "Customize headers with images and links to additional websites", out.width=("100%")}
+knitr::include_graphics(here(images, "img04_3_iconAdd.png"))
+```
+
+## Adding your Widgets
+
+1. Ribbon > Widget.
+
+2. You'll notice in this *theme* we have the option to add up to 5 widgets along the left side. 
+
+3. You will add your widgets first and then configure them. Click on each empty box and select a widget. Widgets can be reorder whenever you want by dragging them in front or back of each other.
+
+    - [About](https://doc.arcgis.com/en/web-appbuilder/create-apps/widget-about.htm)
+    - [Screening](https://doc.arcgis.com/en/web-appbuilder/create-apps/widget-screening.htm)
+    - [Query](https://doc.arcgis.com/en/web-appbuilder/create-apps/widget-query.htm)
+    - [Filter](https://doc.arcgis.com/en/web-appbuilder/create-apps/widget-filter.htm)
+    - [Directions](https://doc.arcgis.com/en/web-appbuilder/create-apps/widget-directions.htm)
+
+4. Its best to configure your **About** widget last because it describes how to use the widgets within your application. You'll begin with the **Screening** widget. Hover over the icon > select edit icon (Figure 04). 
+
+```{r image-4-editcon, echo=FALSE, fig.cap= "Hover over any icon to access addititional features", out.width=("50%")}
+knitr::include_graphics(here(images, "img04_4_editWidget.png"))
+```
+
+5. Under Analysis tab > Analysis Layers > Add layers. The daycare layer populates because that is the only feature class associated with the map.
+
+6. Hover over Actions > select edit (Figure 05).
+
+    - The only layer to select is the daycare feature > Label.
+
+```{r image-05-addIcon, echo=FALSE, fig.cap= "Edit display information for the report", out.width=("80%")}
+  knitr::include_graphics(here(images, "img04_5_editSearch.png"))
+```
+\newpage
+
+7. Hover over each Field name and delete them all except the shown fields (Table 02). If you *delete* the *wrong* one, its okay, simply use the **Add Field** to repopulate the required field.
+
+8. Add a new label for each field name (Table 02).
+
+```{r table-2-screeningWidget, echo=FALSE, message=FALSE, warning=FALSE}
+numbers.tbl <- read_csv(here(tables, "tbl04_2_screeningWidget.txt"))
+
+kbl(numbers.tbl, booktabs = TRUE, caption = "Labels will display on the output window and in the report", align = "l") %>%
+  kable_styling(latex_options = c("striped", "hold_position"),
+                position = "center") 
+``` 
+9. Under Download >
+
+    - Allow Download : Box checked
+    - Default layout : Letter ANSI A Landscape
+    - Report Title : Closest Childcare Facilities Near Me
+    - Report column title color : hex `#aaaeb3`
+    - Display Summary : Box checked
+    
+10. Edit > **Query** Widget > + New Query
+
+11. Info tab >
+
+    - Icon: red flash
+    - Title: Facility Name
+    - Expression: OPERATION_NAME is unique (Ask for values)
+
+12. Filters tab > Query Criteria > Set option > input parameters as shown (Figure 06).
+
+    - OPERATION_NAME is unique (select under the options icon)
+    - Ask for values: check
+
+```{r image-06-setQuery, echo=FALSE, fig.cap= "Setting a query expression", out.width=("70%"), fig.pos="H"}
+  knitr::include_graphics(here(images, "img04_6_setQuery.png"))
+```
+
+13. Under results tab > use symbol: \textcolor{red}{red flash}.
+
+14. Repeat previous steps learned to make a + New query.
+
+    - Repeat symbology: \textcolor{red}{red flash}
+    - Title: Select County
+    - Expression: County is unique (Ask for values)
+
+15. You should now have two query's (Figure 07).
+
+```{r image-07-twoQuery, echo=FALSE, fig.cap= "Created query's", out.width=("50%")}
+  knitr::include_graphics(here(images, "img04_7_twoQuery.png"))
+```
+
+16. Select the **Filter** widget > edit > + New Filter > add the daycare layer.
+
+17. Info tab >
+
+    - Label: County
+    - Icon: \textcolor{red}{red flash} (the filter will not apply any symbology changes, but we keep the same appearnce as the query)
+    
+18. Expression tab > Add expression >
+
+    - Where COUNTY is unique (setting option)
+    - Ask for values: Checked box
+    - Prompt: Select a County
+
+19. Repeat another filter > + New Filter >
+  
+    - Label: Accepts Subsidies
+    - Icon: red flash
+    - Where ACCEPTS_CHILDCARE_SUBSIDES is unique (setting option)
+    - Ask for values: Checked box
+    - Prompt: Do you need subsidies
+
+20. Save your App.
+
+21. **Directions** Widget > Edit > hover over LocateNYC > delete the geocoding option.
+    
+    - *Retain only* the ArcGIS World Geocoding.
+    - Leave all other defaults.
+
+\newpage
+
+22. Under the widget ribbon there is a widget icon for the **Header Column**, select the icon (Figure 08).
+
+```{r image-08-header, echo=FALSE, fig.cap= "Header widget controls display in the header", out.width=("50%")}
+  knitr::include_graphics(here(images, "img04_8_headerWidget.png"))
+```
+
+23. Delete the layer list and the legend. Your users will understand a point means a facility.
+
+    - Add the Basemap widget
+
+24. Save your app.
+
+\vspace{50pt}
+\begin{center}
+\textbf{--------- Intentional Blank ---------}
+\end{center}
+
+\newpage
+
+25. **About** widget > Edit > Copy and paste the following text (Note: The data can be copied from the text file; `data\ch04_2_AboutWidget.txt`)
+
+\setlength{\leftskip}{3em}
+Texas Child Services Locator
+
+Basemap : located along the top bar ribbon choose, style of basemap.
+
+Screening: The user can choose from multiple search methods.
+
+Facility Name: Enter a known address, set the buffer Miles, press Report.
+--- or ---
+Draw: use a drop icon or use any of the drawing tools to shape your area. You may want to use the 'Polyline' method to draw a direct line from your home to work. The buffer can give you a care facility not far off your route. Press Report.
+
+Results
+Once the tool is run, select Child Services to expand the list. Select any facility from the list to highlight the location on the map. 
+
+Select the print icon and select print again to populate a report. Use the printed report to contact facilities and record current care rates to find a care plan that fits your budget.  
+
+Query: Choose either a specific facility name or a county to find a destination. Select inputs from the drop-down box and press apply. Highlight the query box results to drag out of view as necessary. 
+
+Filter: Select ONLY one filter at a time from the drop-down box. Then select the slider icon to green.
+
+Direction: Choose your starting location. Then copy an address from either a pop-up, query, or filter of the desired care facility.
+
+\setlength{\leftskip}{0pt}
+
+26. After you copy and paste into the **About** widget, keep all text flush to the left. Use the inline text editor to configure your font type, and the indents (Figure 09). 
+
+```{r image-09-about1, echo=FALSE, fig.cap= "Use the control panel to adjust your text", out.width=("100%"), fig.pos="H"}
+  knitr::include_graphics(here(images, "img04_9_textEditor.png"))
+```
+
+\begin{center}
+\shadowbox{\begin{minipage}{.85\linewidth}\textbf{Note:} Always copy and paste your text from whatever format (html, word, etc.) into a notepad or plain text editor first to remove any macro formatting. If you are pasting from word, there is a paste from word icon.\end{minipage}}
+\end{center}
+
+27. The final **About** widget should look like the following image (Figure 10).
+
+```{r image-10-TexasChild, echo=FALSE, fig.cap= "After configuring text with inline editor", out.width=("60%"), fig.pos="H"}
+  knitr::include_graphics(here(images, "img04_10_textEditor2.png"))
+```
+
+28. Lastly, we can set a splash screen to welcome are users. 
+
+    - **Turn on** the *eye icon* after hovering on the splash widget.
+    - Add the following text:
+
+\setlength{\leftskip}{3em}
+
+Welcome to the Texas Child Services Locator.\newline 
+Facility availability is subject to change at any time. \newline 
+Users of the app are responsible for confirming facility status through communication methods (telephone, email). 
+
+\setlength{\leftskip}{0pt}
+
+\newpage
+
+29. Center your text and change the text size to medium (Figure 11).
+
+```{r image-11-splashScreen, echo=FALSE, fig.cap= "Splash screen text appears when users first open the web app", out.width=("80%")}
+  knitr::include_graphics(here(images, "img04_11_splashScreen.png"))
+```
+
+30. Save and launch your application.
+
+## Reviewing your Web Appbuilder
+
+1. The User of this application is greeted by the **splash screen**.
+
+2. In the upper corner change the **Basemap** to aerial imagery. Review and the return to the **Navigation map**. 
+
+3. On the bottom left, use the **+/-** to zoom *in and out*. Notice the scale bar adjusts dynamically to the map (Figure 12). 
+
+```{r image-12-zoomBar, echo=FALSE, fig.cap= "Navigation tools that control the map view", out.width=("70%")}
+  knitr::include_graphics(here(images, "img04_12_zoomBar.png"))
+```
+
+4. Select the **home button** to return to the default map extent (Texas).
+
+5. Select the ***my location tab** to zoom into your area. Select the button again to stop and return to the home extent. 
+
+6. Select the **about** widget, the user can read the user guide. 
+
+7. Select **screening** widget. In the location, type in Hereford,TX : set the result to 10 miles, select report. Expand the Child Services to see availability (Figure 13). 
+
+```{r image-13-screen1, echo=FALSE, fig.cap= "Address widegt in operation", out.width=("90%")}
+  knitr::include_graphics(here(images, "img04_13_child1.png"))
+```
+
+8. Select back and this time use the **draw option**. Use the **Polyline** to draw a route between  Hereford and your place of work in Canyon (to the northeast). Set you **Mile buffer** to 5 miles (Figure 14). 
+
+```{r image-14-screen2, echo=FALSE, fig.cap= "Draw method", out.width=("90%"), fig.pos="H"}
+  knitr::include_graphics(here(images, "img04_14_draw.png"))
+```
+
+9. Select the **print** option after running the report. Select *print* again and save the document as a pdf to your desktop to review. The pdf document can be used as a checklist to shop for care plans. 
+
+10. From the **listings** in the window, *copy and paste* the facility you have chosen for your child. 
+
+11. Open the **directions** widget. Select a point on the map to populate input 1. **Paste** in your facility address input 2 (Figure 15). 
+
+    - `400 N 25 MILE AVE STE 170 HEREFORD TX- 79045 3042`
+    - Get Directions
+
+```{r image-15-screen3, echo=FALSE, fig.cap= "Copy an address from the screening widget", out.width=("60%")}
+  knitr::include_graphics(here(images, "img04_15_copyPaste.png"))
+```    
+12. The user now has driving directions. Select the **print icon** to open a turn by turn list. Select print again to save the document to your desktop as a pdf. Open the document for review and close the pdf.
+
+13. Select the **query** widget. There are over 15,000 care facilities in our database, it would take along time to scroll through facilities to find what we want. Suppose you intend to send your child to a Christian focused facility, you can type that in the search bar to narrow your results. 
+
+14. Open the filter widget. Select the county of **CORYELL**. Return to the query widget and type *Christian* again. There are no facilities in this county. Type **Baptist** in the search bar. Two facilities are available. Select either one and **Apply**. The map zooms into your choice with the pop-up window to give more detail. 
+
+15. Close the app viewer and return to your My Content homepage.
+
+16. Select the your web app to open the details page.
+
+17. Edit your final metadata from the beginning of the tutorial (Table 01).
+    
+# Section II: Web AppBuilder DE
+
+Web AppBuilder Developers Edition (DE) is a two part system, where some of the software files live on desktop computer and partly through the web interface. The Developers Edition is well beyond the scope of the HHS Workshop, but we do give you the opportunity to explore. The user should have a good understanding of HTML, Javascript, and usage of API's before embarking on the DE quest. 
+
+## Getting started
+
+1. Visit the download site and then install the software according to your device (windows, apple, linux) [Download here](https://developers.arcgis.com/web-appbuilder/guide/getstarted.htm) for the desktop version of DE. 
+
+2. Here is one of many links to visualize instructions that aid in understanding the written documentation. *ArcGIS Web AppBuilder Developer edition Installation and Configuration* [Video Link](https://www.youtube.com/watch?v=StQjJifXb0Q).
+
+# Summary
+
+In chapter 4, users constructed a locator application to find child services which include daycare and after school programs. As part of the health and human services umbrella, when a parent(s) struggle to find facilities, a set of cascading events occur leading to diminished individual health for all parties involved. You learned how to use the ready made widgets for your application and how to publish the service for a mass audience. The speed at which the web AppBuilder can be constructed is considerably less and does not require the coding specialization of the Developers Edition.
+
+You might have noticed from the beginning of this exercise that the data set is quite limited. Remember the first step in any map work is to explore your data so you know what you're are dealing with. The file has good information, but the formatting to access that presents few options to filter due to over-stacking in single cells, cell layout, and cell format (time, int, text, etc.). Think about how you might adjust the data through a process called data cleaning. You'll explore this in Chapter 5.
+
+While we used child services as our example, think about how this app could be used for *specialized* health care services. Instead of filtering by county, a filter for a *specific* type of *medical* profession such as a *Dermatologist*. How about filtering by *injury* or *pain* which then displays types of medical professions and the associated clinics. The take away here is **If you dream it, Esri technology will build it**.
+
+\vspace{20pt}
+
+```{r image-16-EsriLogo, echo=FALSE, out.width=("60%")}
+  knitr::include_graphics(here(graphic, "esri-2.png"))
+```    
+
+\vspace{20pt}
+\center\textbf{----- End of Chapter 4 -----}
