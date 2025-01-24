@@ -1,1 +1,5 @@
 This is a folder info text test
+
+1. The Dutchman AAR is an example of document writing with charts, pictures and other Quarto capability.
+  - Note: pictures and data referenced are not included. The code is for reference.
+2. 
