@@ -2,4 +2,4 @@ This is a folder info text test
 
 1. The Dutchman AAR is an example of document writing with charts, pictures and other Quarto capability.
   - Note: pictures and data referenced are not included. The code is for reference.
-2. 
+2. Lookout cards include an ODS file to read in. The Lookout cards are an example that could be duplicated for any number of Cut out Cards such as: name plates, garage sale tags, painting tags, etc
