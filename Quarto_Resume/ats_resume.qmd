@@ -1,0 +1,221 @@
+---
+format:
+  pdf:
+    documentclass: article
+    fontsize: 11pt
+    mainfont: Noto Sans Light
+    params:
+      ats: false   # true = ATS version, false = design version
+    header-includes: |
+      \usepackage[top=0.5in,bottom=0.75in,left=.75in,right=.75in]{geometry}
+      \usepackage{microtype}
+      \usepackage{xcolor}
+      \definecolor{lightgray}{gray}{0.70}
+      \definecolor{mygray}{RGB}{80,80,80}
+      \usepackage{tabularx}
+      \newcolumntype{L}{>{\raggedright\arraybackslash}p{3cm}}
+      \usepackage{fancyhdr}
+      \pagestyle{fancy}
+      \fancyhf{}
+      \renewcommand{\headrulewidth}{0pt}
+      \renewcommand{\footrulewidth}{0.4pt}
+      \renewcommand{\footrule}{\hbox to\headwidth{\color{mygray}\leaders\hrule height \footrulewidth\hfill}}
+      \usepackage{lastpage}
+      \lfoot{{\fontsize{8}{10}\selectfont\textcolor{mygray}{\textit{Travis Newton Resume}}}}
+      \rfoot{{\fontsize{8}{10}\selectfont\textcolor{mygray}{\textit{Page \thepage\ of \pageref{LastPage}}}}}
+      \AtBeginDocument{%
+        \hypersetup{
+          colorlinks=true,
+          urlcolor=mygray,
+          linkcolor=mygray,
+          citecolor=mygray
+        }}
+      \usepackage{fontawesome5}
+      \newcommand{\icontext}[2]{\textcolor{mygray}{#1\quad #2}}
+      % toggle ATS line depending on version:
+      % ATS version:
+      % \newcommand{\skillfill}{}
+      % Design version:
+      \newcommand{\skillfill}{\textcolor{lightgray}{\dotfill}}
+            % Define a GPA text macro
+      \newcommand{\gpatext}[1]{%
+        {\fontsize{9}{11}\selectfont\textcolor{mygray}{\emph{ GPA #1}}}}
+      \newcommand{\hourstext}[1]{%
+        {\fontsize{9}{11}\selectfont\textcolor{mygray}{\emph{ #1 hrs weekly}}}}
+      \newcommand{\summarytext}[1]{%
+        {\fontsize{9}{10}\selectfont #1}}
+      \newcommand{\worktext}[1]{%
+        {\fontsize{9}{8}\selectfont #1}}
+      \newcommand{\agencytext}[1]{%
+        {\fontsize{10}{10}\selectfont #1}}
+      \newcommand{\sectiontext}[1]{%
+        {\fontsize{13}{18}\selectfont #1}}
+---
+
+```{r}
+#| message: false
+#| output: false
+#| include: false
+#| label: packages
+
+
+if (require("pacman", quietly = TRUE)) {
+  print("Pacman has been installed.")
+} else {
+  print("Package is not installed. Installing Pacman now....")
+  install.packages("pacman")
+}
+
+#Packages to be loaded
+pacman::p_load("here", "extrafont")
+loadfonts()
+# windowsFonts()
+```
+
+```{=latex}
+\begin{center}
+{\fontsize{20}{24}\selectfont\textls[100]{Travis Newton}}\\[0.25em]
+{\fontsize{13}{16}\selectfont\textls[25]{Geospatial Analyst}}\\
+{\fontsize{9}{11}\selectfont\textls[25]{\href{https://maps.app.goo.gl/x9qQ5DZvBps6wbkB9}{Washington, D.C.}}}
+\end{center}
+
+\begin{center}
+\fontsize{8}{10}\selectfont
+\icontext{\faIcon{envelope}}{\href{mailto:jjenny@arpanet.com}{jjenny@arpanet.com}} \quad | \quad
+\icontext{\faIcon{linkedin}}{\href{https://www.linkedin.com/in/geosf/}{Travis Newton}} \quad | \quad
+\icontext{\faIcon{github}}{\href{https://github.com/tnewtonGIS}{tnewtonGIS}} \quad | \quad
+\icontext{\faIcon{phone}}{503-867-5309}\quad | \quad
+\icontext{\faIcon{globe}}{\href{https://calm-centaur-c8648c.netlify.app}{Portfolio}}
+\end{center}
+```
+
+```{=latex}
+
+% 15pt heading with a line that runs to the right margin
+\vspace{.25em}
+\noindent
+{\sectiontext{Summary}}
+\hspace{0.75em}\hrulefill
+
+\summarytext{
+GIS Analyst with 8+ years of experience in spatial data visualization, cartography, and geospatial analysis, specializing in emergency management and public health. Skilled in R programming for data cleaning, dashboard development, and web integration, with advanced expertise in ArcGIS. Experienced in applying federal standards, data governance, and information security protocols to geospatial projects. A 20-year U.S. Army veteran bringing proven leadership, adaptability, and collaboration skills to deliver impactful solutions across technical and operational environments.}
+```
+
+```{=latex}
+
+\vspace{0.5em}
+\noindent
+{\sectiontext{Technical Skills}}
+\hspace{0.75em}\hrulefill
+
+\vspace{0.5em}
+{\fontsize{10}{12}\selectfont
+%\begin{tabularx}{\textwidth}{@{}l!{\color{lightgray}\vrule width 0.3pt}X@{}}
+
+\begin{tabularx}{\textwidth}{@{}LX@{}}
+\textbf{GIS Esri} \skillfill & Pro | Online | Enterprise | Dashboard | ExB | Hub | Fieldmaps | Survey123 | StoryMaps \\[0.35em]
+
+\textbf{GIS Other} \skillfill & R (sf, sp, tmap, leaflet) | GRASS GIS | QGIS | SAGA \\[0.35em]
+
+\textbf{Programming} \skillfill & R | Python | Esri Arcade | SQL | HTML | CSS | SCSS | JavaScript | \LaTeX | PowerBi with DAX \\[0.35em]
+
+\textbf{Databases} \skillfill & ArcGIS Enterprise Geodatabases (SDE) | PostgreSQL | SQL Server | Metadata management \\
+\end{tabularx}
+}
+```
+
+```{=latex}
+
+% 15pt heading with a line that runs to the right margin
+\vspace{0.5em}
+\noindent
+{\sectiontext{Certifications}}
+\hspace{0.75em}\hrulefill
+
+\vspace{0.5em}
+{\fontsize{10}{12}\selectfont
+\begin{tabularx}{\textwidth}{@{}LX@{}}
+\textbf{Air} \skillfill & FAA sUAS Part 107a Remote Pilot | NCDOT Remote Pilot \\[0.35em]
+\textbf{Land} \skillfill & AED | CPR | Ambulance Operator | Sawyer Chainsaw | Flagger | Animal Response \\[0.35em]
+\textbf{Sea} \skillfill & Dr\"ager 02 Diver | NAUI Master Diver | SSI Nitrox Diver | DOI Motorboat Cert \\
+\end{tabularx}
+}
+```
+
+```{=latex}
+
+% 15pt heading with a line that runs to the right margin
+\vspace{1em}
+\noindent
+{\sectiontext{Work Experience}}
+\hspace{0.75em}\hrulefill
+
+\vspace{0.5em}
+\textbf{IM-01 Geospatial and Data Analyst} \hfill Oct 2024 – Present \\
+\agencytext{\emph{FEMA}\hourstext{40} \hfill \emph{Washington, D.C.}} \\[0.25em]
+\noindent 
+\worktext{
+Provide on-site geospatial support in declared disaster zones at the Interagency Recovery Coordination (IRC) center as a FEMA Reservist. Create cartographic and analytical maps to support agencies in the ongoing relief effort, incorporating Esri map series techniques and R data cleaning, saving weeks of labor. Continually improving code error handling and manually conducting QA/QC on reported data outcomes. Thematic choropleth maps combined with statistical charts give key leaders the spatial decision-making tools they need. Prototyped Esri mobile applications for collection and operations dashboards to capture IRC response efforts. Integrated the FEMA database collection into a data reporting system that tracks all metrics of the IRC's accomplishments and personnel stats. The reporting system used DEVOPS strategies through four phases of testing and deployment, starting with Power BI and ending with Quarto Dashboards that meet 508 compliance standards. The director praised the outcome and stands as a model in future disaster zones across all subsections at FEMA.}
+
+
+\vspace{0.5em}
+\textbf{GS-05 Fire Lookout} \hfill May 2024 – Sep 2024 \\
+\agencytext{\emph{USFS}\hourstext{60} \hfill \emph{Ruch, Or.}} \\[0.25em]
+\noindent 
+\worktext{
+Monitor, report, and guide firefighters and aircraft to active fires in remote wilderness. Applied geospatial triangulation and geometric techniques with a combination of Osborn Firefinder, compasses, and analog maps to approximate fire detection. Interact with public visitors and serve as a historic interpreter of the lookout tower. Investigate environmental issues on foot and by vehicle, using topographic maps and understanding the rugged terrain across 981 sq mi of the Rouge River-Siskiyou National Forest. Remain self-sufficient for over five months while isolated on a 13-on, 1-off schedule in extreme weather, including heat, snow, and lightning storms.}
+
+\pagebreak
+\vspace{0.5em}
+\textbf{GS-05 Park Ranger} \hfill May 2023 – Sep 2023 \\
+\agencytext{\emph{NPS\hourstext{40}} \hfill \emph{Luray, Va.}} \\[0.25em]
+\noindent 
+\worktext{
+Serves as a Preventive Search and Rescue Ranger (PSAR) conducting daily patrols in the back country, responding to emergency calls of medical issues and lost hikers. Utilize topographic maps and GPS for search and rescue operations in both night and day conditions. When not responding to emergencies, conduct awareness training emphasizing the 10 essentials of hiking at trailheads, thereby reducing emergency response calls and technical rescues. Non-emergency responses include wildlife animal control, clearing roads after storms, vehicle issues (including lockouts and dead batteries), and towing services. Transport patients from the Shenandoah Park to the nearest hospital ER using the ambulance.}
+
+\vspace{0.5em}
+\textbf{Geospatial Technical Consultant} \hfill May 2021 – May 2023 \\
+\agencytext{\emph{Esri}\hourstext{40} \hfill \emph{Vienna, Va.}} \\[0.25em]
+\noindent 
+\worktext{
+Serves as a Geospatial Information Systems tech consultant in the Health and Public Safety division, supporting Federal and State agencies by installing and configuring applications, automating workflows with model builder and Python scripts, designing GIS curriculum and workshops, and supporting customer engagements at conferences. Worked on development teams (DEVOPS), creating the architecture and code for network adequacy, which determines Veteran Health Administration (VHA) hospital closures and relocation. Engineered a health app that took existing SAS/R code and turned it into a working Python geospatial tool embedded in a web app to aid fraud investigations. Bridged several R geospatial tools that showcase how data scientists unfamiliar with Esri products can work with GIS professionals in both R and Python conversion. 
+For Emergency Management, custom applications include modeling historical FEMA and NOAA data to generate index predictions. Upgraded deprecated apps into the new Experience Builder with intuitive functionality and speedier load times. Automate analysis with a custom GP tool to analyze current hurricane satellite data and the cost effects on infrastructure, which automates directly to an ArcGIS interactive web app dashboard displaying the results for senior officials to request FEMA deceleration funding.}
+
+
+\vspace{0.5em}
+\textbf{\href{https://ntrs.nasa.gov/api/citations/20205008230/downloads/2020Sum_NC_CherokeeWater_TechPaper_FD-final.docx.pdf}{Remote Sensing Intern}} \hfill May 2020 – Aug 2020 \\
+\agencytext{\emph{NASA DEVELOP}\hourstext{35} \hfill \emph{Asheville, Nc.}} \\[0.25em]
+\noindent 
+\worktext{
+Operate in a dynamic remote sensing development team integrating Google Earth Engine (GEE) to process satellite time-series data from Landsat-7 and Sentinel imagery for change detection analysis. Created multiple Esri Model Builders to determine winter decline signals over twenty years across four states that encompass the Eastern Band of Cherokee Indians (EBCI). The team concentrated on Hemlock trees with the Normalized Difference Vegetation Index (NDVI) rasters, as these evergreen species are more fire-resilient and improve stream quality, promoting more substantial fish populations. Our team successfully developed models to find new hemlock locations and delivered training tutorials to the EBCI to expand their GIS program to enhance their cultural awareness programs.}
+
+\vspace{0.5em}
+\textbf{\href{https://www.amazon.com/Rarotonga-Global-Treks-Adventures/dp/B08QS553LB/}{Tourism Mapping Intern}} \hfill May 2024 – Sep 2024 \\
+\agencytext{\emph{Global Treks and Adventures LLC}\hourstext{30} \hfill \emph{Rarotonga, Cook Islands}} \\[0.25em]
+\noindent 
+\worktext{
+Lead GIS mapper overseeing field data collection and map development. Collected UAV imagery and trail data using three GPS units, averaging readings to produce accurate centerlines for hiking maps, elevation profiles, and key features. Captured coordinates for urban tourism sites and cultural landmarks, compiling reference maps with bus routes, water stations, and emergency services. Applied photogrammetry techniques to Rarotonga’s coastline and lagoons, using custom buoy markers as Ground Control Points (GCPs) to generate enhanced imagery. Delivered geospatial products for publication and supported long-term coastal monitoring and environmental resource planning.}
+
+\vspace{0.5em}
+\textbf{E8 Master Sergeant} \hfill Jan 1997 – Feb 2017 \\
+\agencytext{\emph{United States Army}\hourstext{40} \hfill \emph{Ft.Lewis, Wa.}} \\[0.25em]
+\noindent 
+\worktext{
+Details as applicable by the hiring agency.}
+```
+
+```{=latex}
+
+% 15pt heading with a line that runs to the right margin
+\vspace{0.5em}
+\noindent
+{\sectiontext{Education}}
+\hspace{0.75em}\hrulefill
+
+\vspace{0.5em}
+{Masters of Geospatial Information Science and Technology} \hfill May 2021 \\
+\agencytext{\emph{North Carolina State Univeristy} \gpatext{3.86} \hfill \emph{Raleigh, Nc.}}
+
+{Bachelors Social Science} \hfill Dec 2017 \\
+\agencytext{\emph{Excelsior Univeristy} \gpatext{3.86} \hfill \emph{Albany, Ny.}}
+```
